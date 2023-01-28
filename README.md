@@ -10,6 +10,23 @@ La única película existente que conzoco, me la pasaron hace muchos años, y la
 Una gran fuente de inspiración ha sido:
 http://www.dragons-lair-project.com/games/pages/sr.asp
 
+------------------------------------------
+Informacion
+--
+Para completar el emulador se necesita un VIDEO REAL al que poder extraer el MANCHESTER que indica el número de cuadro!!!!
+puedo sacar los 42 datos de abajo (3 columnas por 14 filas), pero NO PUEDO sacar el número de cuadro, que son tres bytes mas
+y que van , si no he investigado mal, en la fila 18 de los cuadros de sincronía (osea, arriba del todo, escondidos, no se ve, vendría antes de la primera línea visible)
+
+en vista de que no puedo encontrar el cuadro leído, NO HAY MANERA de sincronizar el cuadro que leo de "mi actual vídeo", con el que el juego necesita.
+Al no conseguir esa sincronía REAL, no hay manera de que el video vaya acompasado al juego, se lanza, o se retrasa, y se decompensa.
+Es posible hacerlo compensando, pero no es lo mismo. puedo emular y decirle que el cuadro que he leído yo (de MI video), es el número "x", pero el juego tiene que creerselo, y si MI cuadro esta desfasado, lo normal, dado que desconozco números de cuadros reales, se acaba descompensado
+
+Haría falta un video REAL, leido con cuadros verdaderos, en los cuales, el cuadro "x" que pide el juego, sea el "x" del video.
+o en su defecto, uno que contenga la linea manchester arriba.
+
+mientras eso no ocurra, es difícil seguir emulando.
+
+-------------------------------------------
 Este emulador es mio al 100%, desarrollado a lo largo de muchos años de investigación, tanto mia propia como con ayuda de terceros (Matt ownby , auto del emulador Daphne).
 
 Algunos videos publicados por mi en estos años:
