@@ -12,3 +12,4 @@ http://www.dragons-lair-project.com/games/pages/sr.asp
 
 Este emulador es mio al 100%, desarrollado a lo largo de muchos años de investigación, tanto mia propia como con ayuda de terceros (Matt ownby , auto del emulador Daphne).
 
+![Imagen starrider](https://github.com/jepalza/FB_STARRIDER_EMULATOR/blob/main/fb_starrider.png)
