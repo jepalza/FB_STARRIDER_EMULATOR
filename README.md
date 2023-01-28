@@ -43,5 +43,7 @@ https://www.youtube.com/watch?v=tVKwQn9zctA
 
 ![Imagen starrider](https://github.com/jepalza/FB_STARRIDER_EMULATOR/blob/main/fb_starrider.png)
 
-Información que ya conozco (retroingeniería)
+---------------------------------------
+Información que ya conozco (retroingeniería):
+
 ![Imagen starrider](https://github.com/jepalza/FB_STARRIDER_EMULATOR/blob/main/info/ya_conocidos.png)
