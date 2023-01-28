@@ -1,0 +1,70 @@
+[Project]
+Version=3
+Description=Emulador StarRider LaserDisc
+Api=fb (FreeBASIC)
+Grouping=1
+AddMainFiles=1
+AddModuleFiles=1
+ResExport=
+CompileIfNewer=0
+IncVersion=0
+RunCmd=0
+[Make]
+Module=Module Build,fbc -c
+Recompile=2
+Current=3
+1=Windows GUI,fbc -s gui
+2=Windows Console (debug),fbc -g -s console
+3=Windows Console,fbc -s console
+Output=
+Run=
+Delete=
+[TabOrder]
+TabOrder=1,12,13,14,3,6,10,11,8,9
+CurrentTab=6
+[File]
+Main=1
+1=EmulStarRider.bas
+2=m6809\6809_BIT.BAS
+3=m6809\6809_CPU.bas
+4=m6809\6809_DIR.BAS
+5=m6809\6809_INS.BAS
+6=m6809\6809_MEM.BAS
+7=m6809\6809_TMM.bas
+8=m6809\6809_DIS.bas
+9=m6809\6809_VAR.bas
+10=m6809\6821_PIA.bas
+11=LaserDisc.bas
+12=variables.bas
+13=rutinas.bas
+14=graficos.bas
+[BreakPoint]
+1=
+2=
+3=
+4=
+5=
+6=
+7=
+8=
+9=
+10=
+11=
+13=
+12=
+14=
+[FileInfo]
+1=0,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+2=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+3=0,231,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+4=0,191,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+5=0,52,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+6=0,252,1,0,524288,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+7=0,59,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+8=0,213,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+9=0,40,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+10=0,225,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+11=0,71,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+12=0,31,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+13=0,128,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+14=0,131,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
