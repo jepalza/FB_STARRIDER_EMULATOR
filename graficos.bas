@@ -134,6 +134,9 @@ Sub ponpaleta()
 	     	g1=RAM(h) Shr 4
 	     	b1=RAM(h+1) And &h0F
 	     	a1=RAM(h+1) Shr 4
+	     	r1=((r1*a1) Shr 4)
+	     	g1=((g1*a1) Shr 4)
+	     	b1=((b1*a1) Shr 4)
 	     	tintes(g)=RGBA(r1*16,g1*16,b1*16,a1*16)
 	     	Print #1,Chr(9);Chr(9);Hex(r1,2);" , ";Hex(g1,2);" , ";Hex(b1,2);" ,"
 	     	g+=1
@@ -171,6 +174,9 @@ Sub pantalla
 		     	g1=RAM(FF) Shr 4
 		     	b1=RAM(FF+1) And &h0F
 		     	a1=RAM(FF+1) Shr 4
+	     		r1=((r1*a1) Shr 4)
+	     		g1=((g1*a1) Shr 4)
+	     		b1=((b1*a1) Shr 4)
 		     	tinte(CC)=RGBA(r1*16,g1*16,b1*16,a1*16)
 		     	CC+=1
 	   	Next
