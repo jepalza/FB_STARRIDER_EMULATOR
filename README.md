@@ -3,6 +3,8 @@ Freebasic emulador (inconcluso) del juego Arcade LaserDisc StarRider
 
 Actualizacion Octubre 2024:
 gracias a SynaMax (SynaMaxMusic) he (hemos) logrado hacer funcionar el video sincronizado y los colores corregidos. Ahora se puede decir que funciona correcto, lo suficiente para poder jugar partidas !!!!
+video:
+https://youtu.be/tDmyhce6RxQ
 
 Este es el primer intento en el mundo de crear un emulador del juego StarRider Arcade LaserDisc.
 
