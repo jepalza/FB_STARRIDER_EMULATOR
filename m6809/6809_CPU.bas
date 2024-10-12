@@ -24,6 +24,8 @@
 
 
 
+Dim Shared debug As Integer
+debug=depuracion ' si es 1, muestra registros de la CPU
 
 Function m6809_execute() As Integer
 	
@@ -45,7 +47,6 @@ Function m6809_execute() As Integer
   '&h19ec=dir parada error LD 
 
   Static DIR_BREAK As Integer= -1 '&he715 'direccion donde queremos parar (-1 anula)
-  Static debug As Integer=0 ' si es 1, se para nada mas iniciarse
   Static DirIni As Integer=&ha000 ' zona de la RAM a visualizar
   Static refresco As Integer=0 ' valor inicial de refresco de pantalla (no tocar aqui)
   Static refresco2 As Integer=10 ' valor inicial de refresco de pantalla (no tocar aqui)
@@ -88,7 +89,9 @@ If refresco <0 Then
        m6821_debug(2)
        
   refresco=50000
-  'If debug=0 Then GoTo nodebug 
+  
+  
+  If debug=0 Then GoTo nodebug 
   
   M6809_dis(PC-1,1) ' desensamblamos 
 
@@ -132,10 +135,12 @@ NODEBUG:
 '  Print "---";leeRAM(ff);"---"
 'next  	
 
-prt 21,1, "pos volante?:"+Str(Hex(leeRAM(&ha106),2)) ' posiblemente la posicion del volante
-prt 22,1, "pos video?  :"+Str(Hex(leeRAM(&ha136),2)) ' quizas posicion video segun volante
-prt 23,1, "1-0 siempre?:"+Str(Hex(leeRAM(&ha137),2)) ' solo pone 1 o 0 segun volante
-prt 24,1, "pos video?  :"+Str(Hex(leeRAM(&ha138),2)) ' quizas posicion video segun volante
+	If debug=1 Then
+		prt 21,1, "pos volante?:"+Str(Hex(leeRAM(&ha106),2)) ' posiblemente la posicion del volante
+		prt 22,1, "pos video?  :"+Str(Hex(leeRAM(&ha136),2)) ' quizas posicion video segun volante
+		prt 23,1, "1-0 siempre?:"+Str(Hex(leeRAM(&ha137),2)) ' solo pone 1 o 0 segun volante
+		prt 24,1, "pos video?  :"+Str(Hex(leeRAM(&ha138),2)) ' quizas posicion video segun volante
+	End if
     ' por ahora actualizo aqui el video, por lo lento que se vuelve todo
     'MostrarVideo(cuadro):cuadro+=1:Locate 37,1:Print "Cuadros de video:";cuadro
 End If
@@ -161,10 +166,10 @@ End If
 
 
   ' para depuracion, borrar tras depurar
-  If (PC-1)=dir_break Then debug=1:screencopy
+  ' If (PC-1)=dir_break Then debug=1:screencopy
   If MultiKey(SC_F1) Then debug=1
   If MultiKey(SC_F2) Then debug=0
-  If debug=1 Then refresco=-1:pantalla:Sleep
+  ' If debug=1 Then refresco=-1:pantalla:Sleep
 
    'Open "pepe.txt" For Output As 1
      'Print #1,Hex(PC)

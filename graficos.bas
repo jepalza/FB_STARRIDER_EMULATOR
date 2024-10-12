@@ -1,25 +1,32 @@
 
+' http://www.seanriddle.com/blittest.html
+' https://seanriddle.com/blitter.html
+' https://seanriddle.com/blittercode.txt  (codigo fuente que acabo de encontrar en 2024, pendiente de revisar)
 
-
-Sub Blitter_pixel(direccion As Integer, valor As integer, dato As integer, mascara As integer, solido As Integer)
-   Dim pixel As Integer
+Sub Blitter_pixel(direccion As Integer, valor As UByte, dato As uByte, mascara As Ubyte, solido As Ubyte)
+   Dim pixel As Ubyte
 
    'If direccion<&hA000 Then Pixel=VRAM(direccion) Else Print "Error direccion VRAM en Blitter_Pixel:";Hex(direccion,4):screencopy
 	Pixel=VRAM(direccion)
 
+	CC=PROM( (valor Shr 4   ) + (COLORMASK*16) )
+	DD=PROM( (valor And &H0F) + (COLORMASK*16) ) 
+	valor=DD Or (CC Shl 4)
+	
 	If dato And &h8 Then
 		If (valor And &hf0)=0 Then mascara=mascara Or &hf0
 		If (valor And &h0f)=0 Then mascara=mascara Or &h0f
 	EndIf
 	
 	pixel=pixel And mascara
+	
 	If (dato And &h10) Then
 		pixel=pixel Or (solido And (255 Xor mascara))
 	Else
 		pixel=pixel Or (valor  And (255 Xor mascara))
 	EndIf
 	
-	If direccion < &ha000 Then vram(direccion)=pixel
+	If direccion < &ha000 Then VRAM(direccion)=pixel
 End Sub
 
 
@@ -46,8 +53,8 @@ Sub Blitter (n As byte)
 		  Dim origen2  As Integer=origen
 		  Dim destino2 As Integer=destino
 		  	  
-		  Dim mask As Integer
-        Dim pix  As Integer
+		  Dim mask As UByte
+        Dim pix  As UShort
 
 	
 		If (dato And 1) Then sxadv=256:syadv=1 Else sxadv=1:syadv=anchob
@@ -115,44 +122,32 @@ Sub Blitter (n As byte)
 
 End Sub
 
-' depuracion solo
+' depuracion, solo para ver las paletas
+' paleta de colores: (Matt Ownby) 
+' los colores podrian ser 64 paletas de 16 colores de 2 bytes cada color
+' que dan 2*16*64=2048 bytes y ocupan la RAM desde la &hC000 hasta &hC7FF
 Sub ponpaleta()
 	  
-	Dim As Integer f,g,h
+	Dim As Integer npaleta,ncolor,h
 	Dim As Integer r1,g1,b1,a1
-	Dim As Integer tintes(16)
 	
 	Dim As Integer x,y
 
-	x=400:y=340
+	x=460:y=400
 	
-	For f=0 To 10
-		
-		g=0
-		For h=&hC000+(f*32) To &hC000+(f*32)+32 Step 2
-		  	r1=RAM(h) And &h0F
-	     	g1=RAM(h) Shr 4
-	     	b1=RAM(h+1) And &h0F
-	     	a1=RAM(h+1) Shr 4
-	     	' parche añadido por SYNAMAXMUSIC en GITHUB el 26-09-2024
-	     	r1=((r1*a1) Shr 4)
-	     	g1=((g1*a1) Shr 4)
-	     	b1=((b1*a1) Shr 4)
-	     	tintes(g)=RGBA(r1*16,g1*16,b1*16,a1*16)
-	     	'Print #1,"COLOR:";Chr(9);Chr(9);Hex(r1,2);" , ";Hex(g1,2);" , ";Hex(b1,2);" ,"
-	     	g+=1
-		Next
+	' STAR RIDER solo emplea 10 paletas ????  (de 0 a 9)
+	For npaleta=0 To 9
 
 		For h=0 To 15
-			Line (x,y)-Step(13,13),tintes(h),bf
-			Line (x,y)-Step(14,14),RGBA(255,255,255,255),B
-			x+=15
+			Line (x,y)-Step(10,10),tinte(h+(npaleta*16)),bf
+			Line (x,y)-Step(11,11),RGBA(255,255,255,255),B
+			x+=11
 		Next
-		x=400
-		y+=15
+		x=460
+		y+=11
 		
 	Next
-	
+
 	Locate 60,35:Print "PALETA:";paleta
 	
 End Sub
@@ -167,45 +162,40 @@ Sub pantalla
   Dim cc As Integer
   Dim dd As Integer
   Dim ff As Integer
-  
-  			CC=0
-	   	For FF=(paleta*32)+&hC000 To (paleta*32)+&hC000+30 Step 2
-	   		Dim As Integer r1,g1,b1,a1
-	   	  	r1=RAM(FF) And &h0F
-		     	g1=RAM(FF) Shr 4
-		     	b1=RAM(FF+1) And &h0F
-		     	a1=RAM(FF+1) Shr 4
-				' parche añadido por SYNAMAXMUSIC en GITHUB el 26-09-2024
-		     	r1=((r1*a1) Shr 4)
-	     		g1=((g1*a1) Shr 4)
-	     		b1=((b1*a1) Shr 4)
-		     	tinte(CC)=RGBA(r1*16,g1*16,b1*16,a1*16)
-		     	CC+=1
-	   	Next
 	   	
-  If actualizar_pantalla Then ' si es "0" no se permite dibujar aun
-       actualizar_pantalla=0
-		  
+	ScreenLock  	
+   If actualizar_pantalla Then ' si es "0" no se permite dibujar aun
+        actualizar_pantalla=0
 		  For FF=0 To anchoxalto-1
-		  	  CC=PROM( (VRAM(FF) Shr 4   ) + (paleta*16) )
-		  	  DD=PROM( (VRAM(FF) And &H0F) + (paleta*16) ) 
-
+		  	  ' los datos a escribir en pantalla pasan a traves de las PROM (PAR e IMPAR con igual contenido)
+		  	  'YA1=8 azul, 9 rojo, 10 verde, 11 amarillo
+		  	  ' la PROM en las posiciones 8,9,10,11(*16) tiene estos valores
+		  	  ' se ve como cambian los colores del centro, y el resto, se mantienen
+		  	   ' 00 01 02 03 04 05 06   07 08   09 0C 0B 0E 0D 0D 0F   moto azul
+		  	   ' 00 01 02 03 04 05 06   0E 0D   09 0C 0B 0E 0D 0D 0F     "  roja
+		  	   ' 00 01 02 03 04 05 06   09 0A   09 0C 0B 0E 0D 0D 0F     "  verde
+		  	   ' 00 01 02 03 04 05 06   0C 0B   09 0C 0B 0E 0D 0D 0F     "  amarilla
+		  	  'CC=PROM( (VRAM(FF) Shr 4   ) + (YA1*16) )
+		  	  'DD=PROM( (VRAM(FF) And &H0F) + (YA1*16) ) 
+		  	  CC=VRAM(FF) Shr 4 
+		  	  DD=VRAM(FF) And &H0F
 		  	  ' NOTAAAAAAAAAAAAAA : para el escalado, mejor con LINE
 		      'Line (XX*escala,YY*escala)-Step(escala,escala),CC,bf
 		      'Line ((XX+1)*escala,YY*escala)-Step(escala,escala),DD,bf
 		     ' para escala 1:1 mejor con PSET
 		       
 		     ' para "trampear" el fondo, si quito el video mientras depuro. deberia eliminarla cuando todo funcione
-		     If video=0 Then RAM(&hCBD0)=1 ' SEGUN CBD0, EL FONDO ES TRANSPARENTE=0. LO DEJO SIEMPRE OPACO=1
-		     
+		     'If video=0 Then RAM(&hCBD0)=1 ' SEGUN CBD0, EL FONDO ES TRANSPARENTE=0. LO DEJO SIEMPRE OPACO=1
+
+				' NOTA: con el nuevo cambio de mascara PROM "creo" que la variable "PALETA" ya NO tiene sentido
 		     If RAM(&HCBD0) And 1 Then
 		     	 ' 1=FONDO SOLIDO
-		     	 Line ( XX   *escala,YY*escala)-Step(escala,escala),(tinte(cc)),bf
-		       Line ((XX+1)*escala,YY*escala)-Step(escala,escala),(tinte(DD)),bf
+		     	 Line ( XX   *escala,YY*escala)-Step(escala,escala),tinte(CC+(paleta*16)),bf
+		       Line ((XX+1)*escala,YY*escala)-Step(escala,escala),tinte(DD+(paleta*16)),bf
 		     Else 
 		     	 ' 0=COLOR "0" TRANSPARENTE
-		       If cc Then Line ( XX   *escala,YY*escala)-Step(escala,escala),(tinte(cc)),bf
-		       If dd Then Line ((XX+1)*escala,YY*escala)-Step(escala,escala),(tinte(DD)),bf
+		       If CC Then Line ( XX   *escala,YY*escala)-Step(escala,escala),tinte(CC+(paleta*16)),bf
+		       If dd Then Line ((XX+1)*escala,YY*escala)-Step(escala,escala),tinte(DD+(paleta*16)),bf
 		     End If
 		    YY+=1
 		    If YY>(altopan-1) Then YY=0:XX+=2
@@ -219,9 +209,10 @@ Sub pantalla
 		  'Line (0,0)-step(8,520),RGB(21,21,21),bf ' lado der.
 		  'Line (632,0)-step(8,520),RGB(21,21,21),bf ' lado izq.
 		  'Line (0,0)-step(640,8),RGB(21,21,21),bf ' superior
-  
-  End If
-
-	ponpaleta()
+   End If
+	screenunlock
+	If depuracion=1 Then ' solo muestro la paleta si es "1"
+		ponpaleta()
+	End If
 	     
 End Sub

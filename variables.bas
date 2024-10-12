@@ -60,16 +60,24 @@ Dim Shared background As Integer=1
 ' colores (puerto CBE0)
 Dim Shared paleta As Integer=0
 
-' variables temporales 
+' mascara de color para PROM
+Dim Shared COLORMASK As Integer=0
+
+'---------------------------------
+' variables temporales (no usar, en la version final, solo depuracion)
 Dim Shared AA As Integer
 Dim Shared BB As Integer
 Dim Shared CC As Integer
-Dim Shared DD As String
+Dim Shared DD As Integer
 Dim Shared EE As Integer
 Dim Shared FF As Integer
 Dim Shared XX As Integer
 Dim Shared YY As Integer
-Dim Shared SS As String
+
+Dim SHARED YA1 As Integer
+Dim SHARED YA2 As Integer
+Dim Shared YA3 As Integer
+'--------------------------------
 
 Dim Shared Blitter_reg(&hF) As integer ' almacen de bytes para el emulador de Blitter (usa 2, de 8+8)
 
@@ -79,11 +87,10 @@ Dim Shared Accel As Single=0 ' acelerador (con decimales, para que no acelere de
 Dim Shared Steer As Single=32 ' manillar (centro=32) (con decimales, para que no gire de golpe)
 Dim Shared BancoROMG As Integer=0 ' banco actual de ROM grafica
 Dim Shared BancoROMS As Integer=0 ' banco actual de ROM de la CPU
-Dim SHARED YA1 As Integer =0 ' PRUEBAS
-Dim SHARED YA2 As Integer =10 ' PRUEBAS 2
-Dim Shared ya3 As Integer=0
+
+
 Dim Shared cuadro As Integer=0 ' prueba para el video
-Dim Shared cadaXcuadro As Integer=0 ' para la velocidad del video
+'Dim Shared cadaXcuadro As Integer=0 ' para la velocidad del video
 
 ' para capturar el cuadro de inicio de la escena que pide el puerto CB82 del PIF
 Dim Shared capturar_cuadro As Integer=0 

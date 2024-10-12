@@ -13,6 +13,10 @@
 ' en MAYO-2017 hay dos nuevas lineas a eliminar: ver el fichero LASERDISC.BAS para detalles
 '*******************************************************************************************************
 
+Dim Shared As Integer depuracion=0 	' si es "1" , quito la mascara frontal
+												' muestro los colores y datos del juego
+												' y registros de la CPU
+
 
 ' necesario para el MULTIKEY
 ' ademas, si usamos compilacion FB, se necesita el "USING FB"
@@ -102,13 +106,13 @@ ScreenSet 1,0 ' establece la 1 de trabajo, y la 0 visible
 ' inicio de la emulacion
 	m6809_reset()
 
-
-Open "pepe.txt" For Output As 1
+' para sacar datos, en un principio, no sale nada, es solo "porsi"
+'Open "salida.txt" For Output As 1
 
 ' abrimos el video, solo si VIDEO=1. si da error, VIDEO devuelve "0" y lo desactiva
 If video Then 
-	'video=AbrirVideo("..\LaserDisc\StarRider.avi")
-	video=AbrirVideo("..\LaserDisc\cinepak.avi") ' usando el video en formato CINEPAK de 1gb, NO NECESITA CODECS
+	video=AbrirVideo("..\VIDEO\StarRider_Xvid.avi")
+	'video=AbrirVideo("..\LaserDisc\cinepak.avi") ' usando el video en formato CINEPAK de 1gb, NO NECESITA CODECS
 	If video=0 Then Print "Error en lectura de VIDEO.(no existe o no es VFW XVID 1.3.3)"' ha dado error, cancelamos video
 EndIf
 If video=0 Then Print:Print "EJECUCION SIN VIDEO: Pulsa una tecla para seguir sin video.":ScreenCopy:sleep 
@@ -128,12 +132,15 @@ tiempo_real=Timer()
 
 ' carga el frontal de la maquina real
 Dim frontal As Any Ptr = ImageCreate( 640, 520, RGB(255, 0, 255)  )
-'BLoad "frontal/frontal.bmp", frontal
-'Put (0,0), frontal
+If depuracion=0 Then ' solo muestro el frontal si es "0"
+	BLoad "frontal/frontal.bmp", frontal
+	Put (0,0), frontal
+End If
 
 
 
 ''' -----------------------------------------------------------------------------------------------
+'Open "pp.txt" For Output As 1 ' salida de datos depuracion
 
 ' bucle infinito de ejecuciones: solo sale con "ESC"
 While 1 
@@ -195,11 +202,30 @@ While 1
 			  'desplaza_video=-40 ' con esto fuerzo a centrar el video mientras depuro
 			  
 			  If expander=1 Then 
-			  		desplaza_video=-29 ' expander desactivado (BIT.1 a 1, o sea, =2) el video se centra en -29
+			  		desplaza_video=-50 ' expander desactivado (BIT.1 a 1, o sea, =2) el video se centra en -50
 			  Else
 			 		'If cadaXcuadro And MultiKey(SC_LEFT)   Then desplaza_video+=10
 			  		'If cadaXcuadro And MultiKey(SC_RIGHT)  Then desplaza_video-=10
-			  		desplaza_video=-385 ' expander activado (BIT.1 a 0, o sea, =0) el video se centra en -385
+			  		'If MultiKey(SC_LEFT)   Then desplaza_video+=10
+			  		'If MultiKey(SC_RIGHT)  Then desplaza_video-=10
+
+   ''==================================================================================================
+   '' SynaMax:
+   ''  We grab the 16-byte word at $D004.  This is the original expander value before it is modified to be 
+   ''  sent out to the PIA.  The center value is 320 ($140).  The left most value 452 ($1C4) and the
+   ''  right most value is 187 ($BB).
+   ''
+   ''	                 LEFT   CENTER  RIGHT
+   ''	 Decimal value:   452 <- 320 -> 187
+   ''	 Offset:          -132    0    +133
+   ''
+   ''  -1073 looks like a good position for desplaza_video to align with the sprites.  We add the "raw"
+   ''  expander value to desplaza_video and then multiply it by 2 since the video is stretched out.
+			  		
+			  		Dim As String raw
+			  		raw=Str(Hex(leeRAM(&hD004),2))+Str(Hex(leeRAM(&hD005),2))
+			  		desplaza_video=-1073+Val("&h"+raw)*2 ' expander activado (BIT.1 a 0, o sea, =0) el video se centra en -420
+   ''==================================================================================================
 			  EndIf
 			  
 			  ' compenso 43 cuadros a mayor, para que coincidan con los que pide el real
@@ -212,15 +238,17 @@ While 1
 			  
 			  
 			  ' los limites, para la configuracion actual (-40 es centro cuando NO esta expandido)
-			  If desplaza_video<-730 Then desplaza_video=-730
-			  If desplaza_video>-40  Then desplaza_video=-40
+			  'If desplaza_video<-730 Then desplaza_video=-730
+			  'If desplaza_video>-40  Then desplaza_video=-40
 			  'Locate 30,30:Print desplaza_video, RAM(&hCBD0)
 			  'If pausa=0 Then cuadro+=(1 * play):pausa=1 ' solo avanza si el PLAY esta pulsado
 			  'print #1,"play:";play
-			  cuadro+=(1 * play):play=0
-			  cadaXcuadro=0
+		 		If leeRAM(&ha136)>0 Then		'' Very important to prevent slow down during black screens
+			  		cuadro+=(1 * play):play=0
+			  	EndIf
+			  'cadaXcuadro=0
 			'End If
-			cadaXcuadro+=1
+			'cadaXcuadro+=1
 		 EndIf
 	   End If     
  
@@ -267,6 +295,7 @@ While 1
    	'Locate 10,10:Print tiempo_consumido
    	'If tiempo_consumido>0.01 Then Sleep (1-tiempo_consumido)*10,1
 
+	If depuracion=1 Then ' solo muestro datos si es "1"
 		Locate 1,1
 		Print "DIP 1 : ";Bin(DIPSWT,8);IIf(Bit(DIPSWT,0), " AUTO-UP", " MANUAL_DOWN")
 		Print "CTL 1 : ";Bin(control1,8)
@@ -274,6 +303,36 @@ While 1
 		Print "CUADRO: ";cuadro;"    "
 		Print "POS. C: ";desplaza_video;"    "
 		Print IIf( expander, "EXPANDER OFF", "EXPANDER ON ")
+	End If
+	
+	If depuracion=2 Then ' solo muestro datos si es "1"
+		Locate 1,1
+		Print "DIP 1 : ";Bin(DIPSWT,8);IIf(Bit(DIPSWT,0), " AUTO-UP", " MANUAL_DOWN")
+		Print "CTL 1 : ";Bin(control1,8)
+		Print "CTL 2 : ";Bin(control2,8)
+		Print "CUADRO: ";cuadro;"    "
+		Print "$CB80:"+Str(Hex(leeRAM(&hCB80),2)) +Str(Hex(leeRAM(&hCB81),2))
+		Print "$A172:"+Str(Hex(leeRAM(&hA172),2)) +Str(Hex(leeRAM(&hA173),2)) +Str(Hex(leeRAM(&hA174),2))
+		Print "$A100 [FieldsLeftBeforeStability]:"+Str(Hex(leeRAM(&hA100),2))
+		Print "$A101:"+Str(Hex(leeRAM(&hA101),2))
+		Print "$A133:"+Str(Hex(leeRAM(&hA133),2)) +Str(Hex(leeRAM(&hA134),2))
+		Print "$A1A4 [PifArray5Bytes]:"+Str(Hex(leeRAM(&hA1A4),2)) +Str(Hex(leeRAM(&hA1A5),2)) +Str(Hex(leeRAM(&hA1A6),2))
+		Print "$A1B4 [ExpectedHexPicNum]:"+Str(Hex(leeRAM(&hA1B4),2)) +Str(Hex(leeRAM(&hA1B5),2))
+		Print "$A1B6 [PifTimeoutCounter]:"+Str(Hex(leeRAM(&hA1B6),2)) +Str(Hex(leeRAM(&hA1B7),2))
+		Print "$A1B9 [ERROR CODE]:"+Str(Hex(leeRAM(&hA1B9),2)) +Str(Hex(leeRAM(&hA1Ba),2))
+		Print "$A1BD [SlowPifCounter]:"+Str(Hex(leeRAM(&hA1BD),2))
+		Print "$A1BE [PifFindCorrectFrameTimeoutCounter]:"+Str(Hex(leeRAM(&hA1BE),2))
+		Print "$A112 [FieldMismatchCount]:"+Str(Hex(leeRAM(&hA112),2))
+		Print "$A1D3:"+Str(Hex(leeRAM(&hA1D3),2)) +Str(Hex(leeRAM(&hA1D4),2))
+		Print "$A1EB:"+Str(Hex(leeRAM(&hA1EB),2)) +Str(Hex(leeRAM(&hA1EC),2)) +Str(Hex(leeRAM(&hA1ED),2)) +Str(Hex(leeRAM(&hA1EE),2))
+		Print "$A12D:"+Str(Hex(leeRAM(&hA12D),2)) +Str(Hex(leeRAM(&hA12E),2)) +Str(Hex(leeRAM(&hA12F),2))
+		Print "$A130:"+Str(Hex(leeRAM(&hA130),2)) +Str(Hex(leeRAM(&hA131),2))
+		Print "$A132:"+Str(Hex(leeRAM(&hA132),2))
+		Print "$D001:"+Str(Hex(leeRAM(&hD001),2)) +Str(Hex(leeRAM(&hD002),2)) +Str(Hex(leeRAM(&hD003),2)) +Str(Hex(leeRAM(&hD004),2))
+		Print "$D004:"+Str(Hex(leeRAM(&hD004),2)) +Str(Hex(leeRAM(&hD005),2))
+		Print "POS. C: ";desplaza_video;"    "
+		Print IIf( expander, "EXPANDER OFF", "EXPANDER ON ")
+	End If
 	
 	  	tiempo_real=Timer()
 	  	ScreenCopy
@@ -305,13 +364,13 @@ ACABAR:
 	Close 1,2,3
 	
 	Open "DUMPRAM.BIN" For Binary Access write As 1
-	For FF=0 To &h1FFFF ' 128k de ram
+	For FF As Integer=0 To &h1FFFF ' 128k de ram
 		Put #1,FF+1, Chr(RAM(FF) And &hFF)
 	Next
 	Close 1     	
 
 	Open "NVRAM.BIN" For Binary Access write As 1
-	For FF=0 To &h3FF
+	For FF As integer=0 To &h3FF
 		Put #1,FF+1, Chr(NVRAM(FF) And &hFF)
 	Next
 	Close 1  

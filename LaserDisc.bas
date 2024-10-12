@@ -5,8 +5,8 @@ Declare Sub CerrarVideo()
 Declare Sub MostrarVideo(ByRef frame As Integer, expandir As Integer, desplaza As integer)
 
 ' medidas del video AVI
-Dim Shared anchoAvi As integer=720 ' el ancho luego se expande al doble
-Dim Shared altoAvi  As Integer=520 '520
+Dim Shared anchoAvi As integer=760 '720 ' el ancho luego se expande al doble
+Dim Shared altoAvi  As Integer=488 '520
 
 ' medidas pantalla y posicion de inicio (deben coincidir con juego)
 Dim Shared anchovisual As Integer
@@ -35,7 +35,7 @@ function AbrirVideo(AVInombre As String) As Integer
 	  .biPlanes=1
 	  .biBitCount=24 ' 24 bits de color 
 	  .biCompression=0
-	  .biSizeImage=(anchoAvi*altoAvi*3)+(1024)
+	  .biSizeImage=(anchoAvi*altoAvi*3)+(10024)
 	   aviframe=callocate(.biSizeImage)
 	end With
 	
@@ -54,7 +54,7 @@ function AbrirVideo(AVInombre As String) As Integer
 	' cogemos la longitud del video en cuadros
 	aviLonFrame=AVIStreamLength(avistream)
    If avilonframe=0 Then CerrarVideo():Return 0
-   
+
 	' se habilita el flujo (Stream) de datos codificados XVID a leer
 	aviframe=AVIStreamGetFrameOpen (avistream, @Bitmap )
    If aviframe=0 Then CerrarVideo():Return 0
@@ -73,6 +73,7 @@ Sub MostrarVideo(ByRef Frame As Integer, expandir As Integer, desplazar As integ
 	'If frame=68 Then frame=107'-38 ' primer cuadro de video real, nada mas empezar  
 	'If frame=1050 Then frame=1000 ' primer cuadro de video real, nada mas empezar  
 	'If frame=3839 Then frame=3891 ' demo inicial, cuando no hacemos nada
+	/'
 	If frame=3939 Then frame=3981 ' 1 Cubitania 
 	If frame=8099 Then frame=8141 ' 2 Hexagonia
 	If frame=12259 Then frame=12301 ' 3 Crystallia
@@ -80,6 +81,7 @@ Sub MostrarVideo(ByRef Frame As Integer, expandir As Integer, desplazar As integ
 	If frame=19629 Then frame=19671 ' 5 Stalactia  ??
 	If frame=23339 Then frame=23381 ' 6 Titania
 	If frame=27499 Then frame=27451 ' 7 Metropolia
+	'/
 	
 	' puntero del cuadro descodificado
 	Dim rgbBits As byte Ptr
@@ -105,22 +107,26 @@ Sub MostrarVideo(ByRef Frame As Integer, expandir As Integer, desplazar As integ
   rgbBits=AVIStreamGetFrame(aviFrame,frame)
   If rgbBits=0 Then CerrarVideo():Print "error formato de video":ScreenCopy:sleep:Exit Sub
 
-  iniavi_desp=0
+  'iniavi_desp=0
   iniAvi_desp=desplazar*4
 
   ScreenLock
+  Cls ' eso no deberia ser necesario, pero dado que desplazo el video, quedan huecos que no se borran solos
   pScreen=screenptr
-  pScreen+=(altoAvi-1)*(anchovisual*4)
-  for yAvi=0 to altoAvi-1
-  	    
-    If yAvi<160 Then 
-    	If copia_expandir=0 Then 
+  pScreen+=(altoAvi+25)*(anchovisual*4)-20 ' centraje vertical=25 + horizontal=-20
+  for yAvi=0 to altoAvi-1 ' de abajo a arriba de la pantalla
+	  ' parte inferior del video NO SE TOCA, es la zona "vista trasera" y NUNCA se expande
+	  ' En la ventana grafica FreeBasic, la coordenada Y empieza en la parte inferior de la ventana
+	  ' y va a positivo hacia arriba.
+	  ' por lo tanto, la parte inferior entre los pixeles 151 y 0 son de la parte del video que NO se expande
+	  ' y entre los pixeles 488 y 152 corresponden a la parte que se expande
+    If yAvi<152 Then  ' estamos en la parte inferior (151 a 0) que NO se expande
+    If copia_expandir=0 Then 
     		expandir=1
-    		iniavi_desp=-116
-    		'copia_expandir=2
-    	End If
-    End If
-    If yAvi>159 Then 
+    		iniavi_desp=-180 '-116
+      End If
+    Else ' estamos en zona que se puede expandir (parte superior del video entre 488 y 152)
+    	If yAvi=152 Then pScreen-=9*(anchovisual*4)-72 ' centraje vertical=(9*(anchovisual*4))+horizontal=(72)
     	If copia_expandir=0 Then 
     		expandir=copia_expandir
     		copia_expandir=2
@@ -128,11 +134,10 @@ Sub MostrarVideo(ByRef Frame As Integer, expandir As Integer, desplazar As integ
     	End If
     EndIf
     
-  	 ' los pixeles origen ocupan 3 bytes, por lo que multiplicamos *3 todo (formato AVI)
-    OrigAVI=(yAvi*anchoAvi*3)+42
-    ' los pixeles destino ocupan 4 bytes, por lo que multiplicamos *4 todo (32bits RGB+ALPHA=4 bytes)
+  	 ' los pixeles ORIGEN ocupan 3 bytes, por lo que multiplicamos *3 todo (formato AVI)
+    OrigAVI=(yAvi*anchoAvi*3)+42 ' 42 para compensar un desfase horizontal
+    ' los pixeles DESTINO ocupan 4 bytes, por lo que multiplicamos *4 todo (32bits RGB+ALPHA=4 bytes)
     DestAVI=iniAvi_desp
-    'If DestAVI>(altovisual*(anchovisual*4)) Then Exit Sub
     for xAvi=0 to anchoAvi-1
     	If DestAVI>=0 And DestAVI<(anchovisual*4) Then ' si los pixeles salen del marco ventana, no se muestran
 	      pScreen[DestAVI+0]=rgbBits[OrigAVI+0] ' azul
@@ -140,8 +145,8 @@ Sub MostrarVideo(ByRef Frame As Integer, expandir As Integer, desplazar As integ
 	      pScreen[DestAVI+2]=rgbBits[OrigAVI+2] ' verde
     	End If
       ' si esta habilitado el modo expandir(0), expandimos en horizontal
-      ' para ellopintamos un pixel repetido igual al anterior, pero un pixel mas a la derecha
-      ' e incrmentados x8, en lugar de x4 (8 bytes de datos, en vez de 4)
+      ' para ello pintamos un pixel repetido igual al anterior, pero un pixel mas a la derecha
+      ' e incrementados x8, en lugar de x4 (8 bytes de datos, en vez de 4)
       If expandir=0 Then 
       	If DestAVI>=0 And DestAVI<(anchovisual*4) Then ' si los pixeles salen del marco ventana, no se muestran
 	      	pScreen[DestAVI+4]=rgbBits[OrigAVI+0] ' azul

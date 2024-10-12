@@ -1,4 +1,4 @@
-
+ 
 '******************************************
 ' Funciones de lectura/escritura de RAM/ROM
 '*******************************************
@@ -52,6 +52,34 @@ Sub pokeb(PT As integer, PV As Integer)
 	' Paleta de colores
 	If (PT>=&hC000 And PT<&HC800) Then
       GuardaRAM(PT,PV) 
+
+	   	' ---------------------------------------------------------------------
+	   	' la paleta de colores la genera STARRIDER y la copia en la RAM C000-C7ff
+	   	' ATENCION: NO DEBERIA leer esta paleta continuamente, solo una vez, cuando esta cambia
+	   	' pero aun no se donde debo hacerlo, ni como, por lo tanto, hasta ese momento, la leo de continuo
+	   	Dim As Integer npaleta,ncolor,h
+	   	Dim As Integer r1,g1,b1,a1
+	   	' paleta 0: el rojo, verde, azul de aqui se usa en los test de LD, en las letras
+	   	' 64 paletas de 16 colores (2 bytes cada uno) ocupando la RAM C000-C7FF (2048 bytes)
+			For npaleta=0 To 9 ' solo leo las 10 primeras, el resto, no se emplean, y asi, ahorro velocidad 
+				ncolor=0
+				'Print "PALETA:";npaleta
+				For h=&hC000+(npaleta*32) To &hC000+(npaleta*32)+30 Step 2 ' 32 bytes=16 colores de 2 bytes cada uno
+				  	r1=RAM(h) And &h0F
+			     	g1=RAM(h) Shr 4
+			     	b1=RAM(h+1) And &h0F
+			     	a1=RAM(h+1) Shr 4
+			     	' parche añadido por SYNAMAXMUSIC en GITHUB el 26-09-2024
+			     	r1=((r1*a1) Shr 4)
+			     	g1=((g1*a1) Shr 4)
+			     	b1=((b1*a1) Shr 4)
+			     	tinte(ncolor+(npaleta*16))=RGBA(r1*16,g1*16,b1*16,a1*16)
+			     	'Print "COLOR:";ncolor;Chr(9);Hex(r1,2);" , ";Hex(g1,2);" , ";Hex(b1,2)';" ,"
+			     	ncolor+=1
+				Next
+			Next
+			' ----------------------------------------------------------------------
+		
  	   Exit Sub
 	EndIf
 
@@ -99,7 +127,6 @@ Sub pokeb(PT As integer, PV As Integer)
 		If PT=&hCBC0 Then 
 		   ' ROMS (0=ROM Graficas para VGG, 1=ROM Graficas para Testeo por CPU)
 		   If BancoROMS<2 Then
-		   	'If RAM(&hC800)=1 Then ya3+=1:Locate 17,1:Print ya3
 		   	If BancoROMS=1 Then BancoROMG=0 Else BancoROMG=&h10000
 				BancoROM(09+(PV And &hf),&h0000+BancoROMG)
 	  	 		BancoROM(19+(PV And &hf),&h4000+BancoROMG)
@@ -109,17 +136,26 @@ Sub pokeb(PT As integer, PV As Integer)
 		   Exit sub
 		End If	
 		
+		' podria ser mascara blitter para cambio de colores
+		' NOTA: al parece, los puertos CBC2 al CBCF no se emplean....
+		If PT=&hCBC1 Then ' en fase de pruebas
+			'YA1= PV And &h0f
+			'YA2=(PV And &hf0) Shr 4
+			COLORMASK = PV And &h3F ' no se si esto es correcto, maximo 64 paletas???
+			'If COLORMASK > 63 Then Print #1,PV,Hex(PV,2):beep
+			'Print #1,YA3,YA2,YA1,Hex(YA3,2),Bin(YA2,8);"-";Bin(YA1,8)
+		EndIf
 		
 		' BLITTER: chip encargado de mover los bloques graficos entre ROM y VRAM
 		' al parecer, los puertos del B0 al B7 "no" existen, el HARD elimina el BIT3, y solo "ve" de la B8 a la BF
 	   If (PT>=&HCBB0 And PT<=&HCBBF) Then  
-	   	If PT<&hcbb8 Then end
-		  Blitter_reg(PT-&hCBB0)=PV	  
-		  If PT=&hCBB8 Then
-		  	Blitter(1) ' salta a escribir el BLITTER
-		  	firq_act=1 ' al acabar el BLITTER genera una FIRQ???
-		  	'm6809_firq()
-		  EndIf
+	   	' anulado, no se emplean If PT<&hcbb8 Then end
+			Blitter_reg(PT-&hCBB0)=PV	
+			If PT=&hCBB8 Then
+				Blitter(1) ' salta a escribir el BLITTER
+				firq_act=1 ' al acabar el BLITTER genera una FIRQ???
+				'm6809_firq()
+			EndIf
 	   EndIf
 	   
 	   
@@ -237,23 +273,7 @@ Sub pokeb(PT As integer, PV As Integer)
 
 	   ' paleta de colores (he visto hasta la 9 por ahora, cuando explota al chocarse con una roca)
 	   If PT>=&hCBE0 And PT<=&hCBEF Then ' NOTA: no parece que se usen desde CBE1 hasta CBEF, nunca llegan aqui!!
-	   	'If PV>3 Then Print Hex(PT,4),PV:screencopy:sleep
-	   	'If PT>&hCBE0 Then Print Hex(PT,4),PV:screencopy:sleep
-	   	paleta=PV And &h3F ' solo 6bits tienen sentido (64 bancos de 16 colores)
-	   	Dim As Integer f,g
-	   	' paleta 0: el rojo, verde, azul de aqui se usa en los test de LD, en las letras
-	   	'For f=0 To 15:tinte(f)=PROM(f+(paleta*16)):next
-	   	g=0
-	   	For f=(paleta*32)+&hC000 To (paleta*32)+&hC000+30 Step 2
-	   		Dim As UInteger r1,g1,b1,a1
-	   	  	r1=RAM(f) And &h0F
-		     	g1=RAM(f) Shr 4
-		     	b1=RAM(f+1) And &h0F
-		     	a1=RAM(f+1) Shr 4
-		     	tinte(g+(paleta*16))=RGBA(r1*16,g1*16,b1*16,a1*16)
-		     	g+=1
-	   	Next
-
+	   	paleta=PV And &h3F ' solo 6bits tienen sentido (64 bancos de 16 colores)	
 	   EndIf 
 	   
 	   
@@ -389,21 +409,41 @@ Function peekb(PT As integer) As Integer
 			   If Left(sa,1)="2" Then sa="FA"+Mid(sa,2)
 			   If Left(sa,1)="3" Then sa="FB"+Mid(sa,2)
 			   
-			   RAM(&hA172+0)=Val("&h"+Mid(sa,1,2))
-			   RAM(&hA172+1)=Val("&h"+Mid(sa,3,2))
-			   RAM(&hA172+2)=Val("&h"+Mid(sa,5,2))	
-			   RAM(&hA172+(PT-&hCB03))=0	
+			   'RAM(&hA172+0)=Val("&h"+Mid(sa,1,2))
+			   'RAM(&hA172+1)=Val("&h"+Mid(sa,3,2))
+			   'RAM(&hA172+2)=Val("&h"+Mid(sa,5,2))	
+			   'RAM(&hA172+(PT-&hCB03))=0	
+			   
+			   '' We feed the VBI frame number into $CB00, they will automatically go to $A172-A174
+			   
+			   RAM(&hCB00+0)=Val("&h"+Mid(sa,1,2))
+			   RAM(&hCB00+1)=Val("&h"+Mid(sa,3,2))
+			   RAM(&hCB00+2)=Val("&h"+Mid(sa,5,2))	
+			   RAM(&hCB00+(PT-&hCB03))=0	
 			    
-			   If PT=&hCB00 Then PV=Val("&h"+Mid(sa,1,2))
-			   If PT=&hCB01 Then PV=Val("&h"+Mid(sa,3,2))
-			   If PT=&hCB02 Then PV=Val("&h"+Mid(sa,5,2))	 
-			   If PT>&hCB02 Then PV=0'Int(Rnd(1)*256) ' aleatorio todo lo demas, por ahora, pero deberian ser MIS 42 bytes manchester	 
+			   'If PT=&hCB00 Then PV=Val("&h"+Mid(sa,1,2))
+			   'If PT=&hCB01 Then PV=Val("&h"+Mid(sa,3,2))
+			   'If PT=&hCB02 Then PV=Val("&h"+Mid(sa,5,2))	 
+			   'If PT>&hCB02 Then PV=0'Int(Rnd(1)*256) ' aleatorio todo lo demas, por ahora, pero deberian ser MIS 42 bytes manchester	 
 
 				'Print #1,"1:";Hex(PT,4),PV
 				'PV=Int(Rnd(1)*256)
 			End If		
 		
-		
+   ''==================================================================================================
+   '' SynaMax:
+   ''  in order to get the video to sync correctly, we need to bypass the fields and vert counters since
+   ''  we're not doing interlated video.
+   ''
+   ''  Let's match up FIELD_HW ($CB90) with FieldVal ($A101), this will tell the game program that
+   ''  the (fake) hardware matches up with what the software is expecting which interlaced field the CRT is on.
+   ''
+   		If PT=&hCB90 Then 
+  			
+   		RAM(&hCB90)=leeRAM(&hA101) ' THIS IS IT!! (3:32 pm 10/5/24)
+   			
+   		EndIf	
+   ''==================================================================================================		
 		  	
 		   ' estos 4 segun parece, son PIA del expander (80 y 81, puerto A) y PIF-LD (82 y 83, puerto B)
 		   If PT=&hCB80 Then 
