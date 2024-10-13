@@ -10,59 +10,105 @@ https://youtu.be/tDmyhce6RxQ
 notas:
 el emulador funciona a un 90%, le falta únicamente el sonido, que por problemas de velocidad al estar hecho enteramente en Basic, no es sencillo de implementar (aún).
 Necesitaras una carpeta llamada ROMS:
+
 ' ROMS de la CPU
+
 	LeeROM("roms/R30U8.CPU" ,3) 
+ 
 	LeeROM("roms/R31U15.CPU",4) 
+ 
 	LeeROM("roms/R32U26.CPU",5) 
-  'LeeROM("roms/xxxx37.CPU",5) 
+ 
+  	'LeeROM("roms/xxxx37.CPU",5) 
+   
 	LeeROM("roms/R34U45.CPU",7) 
+ 
 	LeeROM("roms/R35U52.CPU",8) 
 
+
 ' 16k : graficos generales	
+
    ' fila "par"
+   
 	LeeROM("roms/R1U4.ROM  ",09)
+ 
 	LeeROM("roms/R3U5.ROM  ",10)
+ 
 	LeeROM("roms/R5U6.ROM  ",11)
+ 
 	LeeROM("roms/R7U7.ROM  ",12)
+ 
 	LeeROM("roms/R9U8.ROM  ",13)
+ 
 	LeeROM("roms/R11U9.ROM ",14)
+ 
 	LeeROM("roms/R13U10.ROM",15) 	
+ 
 	LeeROM("roms/R15U11.ROM",16) 
+ 
 	LeeROM("roms/R17U12.ROM",17)
+ 
 	LeeROM("roms/R19U13.ROM",18) 
+ 
 	' fila "impar"	
+ 
 	LeeROM("roms/R2U19.ROM ",19)
+ 
 	LeeROM("roms/R4U20.ROM ",20)
+ 
 	LeeROM("roms/R6U21.ROM ",21)
+ 
 	LeeROM("roms/R8U22.ROM ",22)
+ 
 	LeeROM("roms/R10U23.ROM",23)
+ 
 	LeeROM("roms/R12U24.ROM",24)
+ 
 	LeeROM("roms/R14U25.ROM",25)
+ 
 	LeeROM("roms/R16U26.ROM",26)
+ 
 	LeeROM("roms/R18U27.ROM",27)
+ 
 	'LeeROM("roms/R25U46.ROM",28)
+ 
 
 ' 8k : graficos de textos	
+
 	LeeROM("roms/R25U46.ROM",33)
+ 
 
 ' PIF: Processor Interface Board (por ahora no necesaria)
+
 	'LeeROM("roms/R26U3.ROM ",49)
+ 
 
 ' SND: Sound Board (por ahora no necesaria)
+
 	'LeeROM("roms/R27U11.ROM",50)
+ 
 
 'PROMS de colores
+
 	LeePROM("roms/u10.82s137")
+ 
 	'LeePROM("roms/u11.82s137") (identica a la anterior, no necesaria)
+ 
 
  Ademas, un vídeo llamado "StarRider_Xvid.avi" dentro de una carpeta "video" 
+ 
  El vídeo, por razones de permisos, no puedo publicarlo, el juego puede funcionar sin el video
 
  Teclas:
+ 
  cursores y Z+X para control. 3 para moneda e iniciar juego
+ 
  W para entrar en modo chequeo y Q para avanzar o aceptar modos
+ 
  E para reinicar CMOS
+ 
  F1 para entrar en modo depuracion
+ 
  ----------------------------------------------
 
 
