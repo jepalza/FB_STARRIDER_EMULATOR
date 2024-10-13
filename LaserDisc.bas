@@ -126,7 +126,7 @@ Sub MostrarVideo(ByRef Frame As Integer, expandir As Integer, desplazar As integ
     		iniavi_desp=-180 '-116
       End If
     Else ' estamos en zona que se puede expandir (parte superior del video entre 488 y 152)
-    	If yAvi=152 Then pScreen-=9*(anchovisual*4)-72 ' centraje vertical=(9*(anchovisual*4))+horizontal=(72)
+    	If yAvi=152 Then pScreen-=(anchovisual*4)-20 ' opcion centraje vertical=(9*(anchovisual*4))+horizontal=(72)
     	If copia_expandir=0 Then 
     		expandir=copia_expandir
     		copia_expandir=2
