@@ -211,7 +211,7 @@ Sub pantalla
 		  'Line (0,0)-step(640,8),RGB(21,21,21),bf ' superior
    End If
 	screenunlock
-	If depuracion=1 Then ' solo muestro la paleta si es "1"
+	If depuracion Then ' solo muestro la paleta si es "1"
 		ponpaleta()
 	End If
 	     

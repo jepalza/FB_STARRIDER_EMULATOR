@@ -5,7 +5,7 @@ Declare Sub CerrarVideo()
 Declare Sub MostrarVideo(ByRef frame As Integer, expandir As Integer, desplaza As integer)
 
 ' medidas del video AVI
-Dim Shared anchoAvi As integer=760 '720 ' el ancho luego se expande al doble
+Dim Shared anchoAvi As Integer=760 '720 ' el ancho luego se expande al doble
 Dim Shared altoAvi  As Integer=488 '520
 
 ' medidas pantalla y posicion de inicio (deben coincidir con juego)
@@ -133,25 +133,25 @@ Sub MostrarVideo(ByRef Frame As Integer, expandir As Integer, desplazar As integ
     		iniAvi_desp=desplazar*4
     	End If
     EndIf
-    
+
   	 ' los pixeles ORIGEN ocupan 3 bytes, por lo que multiplicamos *3 todo (formato AVI)
     OrigAVI=(yAvi*anchoAvi*3)+42 ' 42 para compensar un desfase horizontal
     ' los pixeles DESTINO ocupan 4 bytes, por lo que multiplicamos *4 todo (32bits RGB+ALPHA=4 bytes)
     DestAVI=iniAvi_desp
     for xAvi=0 to anchoAvi-1
     	If DestAVI>=0 And DestAVI<(anchovisual*4) Then ' si los pixeles salen del marco ventana, no se muestran
-	      pScreen[DestAVI+0]=rgbBits[OrigAVI+0] ' azul
-	      pScreen[DestAVI+1]=rgbBits[OrigAVI+1] ' rojo
-	      pScreen[DestAVI+2]=rgbBits[OrigAVI+2] ' verde
+	      pScreen[(DestAVI+0)]=rgbBits[OrigAVI+0] ' azul
+	      pScreen[(DestAVI+1)]=rgbBits[OrigAVI+1] ' rojo
+	      pScreen[(DestAVI+2)]=rgbBits[OrigAVI+2] ' verde
     	End If
       ' si esta habilitado el modo expandir(0), expandimos en horizontal
       ' para ello pintamos un pixel repetido igual al anterior, pero un pixel mas a la derecha
       ' e incrementados x8, en lugar de x4 (8 bytes de datos, en vez de 4)
       If expandir=0 Then 
       	If DestAVI>=0 And DestAVI<(anchovisual*4) Then ' si los pixeles salen del marco ventana, no se muestran
-	      	pScreen[DestAVI+4]=rgbBits[OrigAVI+0] ' azul
-	      	pScreen[DestAVI+5]=rgbBits[OrigAVI+1] ' rojo
-	      	pScreen[DestAVI+6]=rgbBits[OrigAVI+2] ' verde
+	      	pScreen[(DestAVI+4)]=rgbBits[OrigAVI+0] ' azul
+	      	pScreen[(DestAVI+5)]=rgbBits[OrigAVI+1] ' rojo
+	      	pScreen[(DestAVI+6)]=rgbBits[OrigAVI+2] ' verde
       	End if
       	DestAVI+=8
       Else

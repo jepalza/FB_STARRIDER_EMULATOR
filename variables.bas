@@ -1,12 +1,13 @@
 
+Dim Shared Escala As Integer=2 ' al ser pantalla 640x480 real, y el juego de 320x240, doblamos la resolucion a mostrar
 
 Dim Shared video As Integer=1 ' para mostrar el video de fondo si VIDEO=1
 
 ' modo de pantalla 640x480 FIJO, no se puede tocar, por que todo va calculado respecto a ella
-Dim Shared resx As Integer= 640
-Dim Shared resy As Integer= 520
-
-Dim Shared Escala As Integer=2 ' al ser pantalla 640x480 real, y el juego de 320x240, doblamos la resolucion a mostrar
+Dim Shared resx As Integer
+Dim Shared resy As Integer
+	resx = 320 * Escala
+	resy = 260 * Escala
 
 ' resolucion grafica del juego REAL
 Dim Shared anchopan As Integer=320 '304

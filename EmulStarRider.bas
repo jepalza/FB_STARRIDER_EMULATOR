@@ -38,15 +38,19 @@ Using FB
 ScreenRes resx,resy,32,2
 ScreenSet 1,0 ' establece la 1 de trabajo, y la 0 visible
 
+' mapa de RAM:
+'   A000-BFFF: RAM 8k 
+'   C000-C7FF: COLORES
+'   C800-CFFF: I/O
+'   D000-DFFF: RAM 4k
 
 ' leemos las ROMS de la CPU en su banco correspondiente
 	LeeROM("roms/R30U8.CPU" ,3) ' 3=0000-3FFF:16k paginados con la U15
 	LeeROM("roms/R31U15.CPU",4) ' 4=0000-3FFF:16k paginados con la U8
 	LeeROM("roms/R32U26.CPU",5) ' 5=4000-7FFF:16k paginados con una ROM inexistente (vacia en la placa)
   'LeeROM("roms/xxxx37.CPU",5) ' 6=4000-7FFF:16k paginados con la U26, pero VACIO, no existe EPROM real
-	LeeROM("roms/R34U45.CPU",7) ' 7=8000-9FFF:8k
-	                            '   A000-BFFF:RAM 8k ,C000-C7FF: COLORES, C800-CFFF: I/O ,D000-DFFF:RAM 4k
-	LeeROM("roms/R35U52.CPU",8) ' 8=E000-FFFF:8k : principal (inicio)
+   LeeROM("roms/rom_34.u45",7) ' 7=8000-9FFF:8k              (original R34U45.CPU)
+   LeeROM("roms/rom_35.u52",8) ' 8=E000-FFFF:8k : principal  (original R35U52.CPU)
 
 ' 16k : graficos generales	
    ' fila "par"
@@ -144,7 +148,7 @@ End If
 
 ' bucle infinito de ejecuciones: solo sale con "ESC"
 While 1 
-  
+
   While Inkey <> "": Wend ' necesario para vaciar las teclas pulsadas por multikey
   
   ' ejecutamos el M6809, una instruccion cada vez y sumamos los ciclos empleados
@@ -185,6 +189,7 @@ While 1
    ' se ejecutan acciones HARDWARE cada 'x' ciclos
    If (opcycles_to_irq <0) Then ' 1.1 mhz 
 		'screenlock
+
    	opcycles_to_irq+=cycles_per_interrupt ' ajustamos ciclos sobrantes
    	'irq_act=1
 
@@ -250,6 +255,8 @@ While 1
 			'End If
 			'cadaXcuadro+=1
 		 EndIf
+	   Else
+	   	If video=0 Andalso actualizar_pantalla=1 Then ScreenSet 0:Cls
 	   End If     
  
 
