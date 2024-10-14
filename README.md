@@ -3,12 +3,10 @@ Freebasic emulador del juego Arcade LaserDisc StarRider
 ====================================================================
 
 Actualizacion Octubre 2024:
-gracias a SynaMax (SynaMaxMusic) he (hemos) logrado hacer funcionar el video sincronizado y los colores corregidos. Ahora se puede decir que funciona correcto, lo suficiente para poder jugar partidas !!!! 
-.
+Gracias a SynaMax (SynaMaxMusic) hemos logrado hacer funcionar el video sincronizado y los colores corregidos. Ahora se puede decir que funciona correcto, lo suficiente para poder jugar partidas Ademas, SynaMax ha proporcionado un nuevo "FRONTAL.BMP" que permite un mejor centrado del video de fondo (ahora los motoristas aparecen en el centro de la carretera)
 
-SynaMax ha proporcionado un nuevo "FRONTAL.BMP" que permite un mejor centrado del video de fondo (ahora los motoristas aparecen en el centro de la carretera)
-video:
-https://youtu.be/tDmyhce6RxQ
+https://youtu.be/tDmyhce6RxQ  (nota: el video es de antes de lograr el nuevo centrado en pantalla)
+
 -------------------------------------------------------------
 notas:
 el emulador funciona a un 90%, le falta únicamente el sonido, que por problemas de velocidad al estar hecho enteramente en Basic, no es sencillo de implementar (aún).
