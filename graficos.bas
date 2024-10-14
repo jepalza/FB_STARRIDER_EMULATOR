@@ -9,6 +9,14 @@ Sub Blitter_pixel(direccion As Integer, valor As UByte, dato As uByte, mascara A
    'If direccion<&hA000 Then Pixel=VRAM(direccion) Else Print "Error direccion VRAM en Blitter_Pixel:";Hex(direccion,4):screencopy
 	Pixel=VRAM(direccion)
 
+	' los datos a escribir en pantalla pasan a traves de las PROM (PAR e IMPAR con igual contenido)
+	' valor=8 azul, 9 rojo, 10 verde, 11 amarillo
+	' la PROM en las posiciones 8,9,10,11(*16) tiene estos valores
+	' se ve como cambian los colores del centro, y el resto, se mantienen
+	' 00 01 02 03 04 05 06   07 08   09 0C 0B 0E 0D 0D 0F   moto azul
+	' 00 01 02 03 04 05 06   0E 0D   09 0C 0B 0E 0D 0D 0F     "  roja
+	' 00 01 02 03 04 05 06   09 0A   09 0C 0B 0E 0D 0D 0F     "  verde
+	' 00 01 02 03 04 05 06   0C 0B   09 0C 0B 0E 0D 0D 0F     "  amarilla
 	CC=PROM( (valor Shr 4   ) + (COLORMASK*16) )
 	DD=PROM( (valor And &H0F) + (COLORMASK*16) ) 
 	valor=DD Or (CC Shl 4)
@@ -167,22 +175,11 @@ Sub pantalla
    If actualizar_pantalla Then ' si es "0" no se permite dibujar aun
         actualizar_pantalla=0
 		  For FF=0 To anchoxalto-1
-		  	  ' los datos a escribir en pantalla pasan a traves de las PROM (PAR e IMPAR con igual contenido)
-		  	  'YA1=8 azul, 9 rojo, 10 verde, 11 amarillo
-		  	  ' la PROM en las posiciones 8,9,10,11(*16) tiene estos valores
-		  	  ' se ve como cambian los colores del centro, y el resto, se mantienen
-		  	   ' 00 01 02 03 04 05 06   07 08   09 0C 0B 0E 0D 0D 0F   moto azul
-		  	   ' 00 01 02 03 04 05 06   0E 0D   09 0C 0B 0E 0D 0D 0F     "  roja
-		  	   ' 00 01 02 03 04 05 06   09 0A   09 0C 0B 0E 0D 0D 0F     "  verde
-		  	   ' 00 01 02 03 04 05 06   0C 0B   09 0C 0B 0E 0D 0D 0F     "  amarilla
-		  	  'CC=PROM( (VRAM(FF) Shr 4   ) + (YA1*16) )
-		  	  'DD=PROM( (VRAM(FF) And &H0F) + (YA1*16) ) 
 		  	  CC=VRAM(FF) Shr 4 
 		  	  DD=VRAM(FF) And &H0F
-		  	  ' NOTAAAAAAAAAAAAAA : para el escalado, mejor con LINE
-		      'Line (XX*escala,YY*escala)-Step(escala,escala),CC,bf
-		      'Line ((XX+1)*escala,YY*escala)-Step(escala,escala),DD,bf
-		     ' para escala 1:1 mejor con PSET
+		  	  
+		  	  ' NOTA : para el escalado, mejor con LINE
+		     '        para escala 1:1 mejor con PSET
 		       
 		     ' para "trampear" el fondo, si quito el video mientras depuro. deberia eliminarla cuando todo funcione
 		     'If video=0 Then RAM(&hCBD0)=1 ' SEGUN CBD0, EL FONDO ES TRANSPARENTE=0. LO DEJO SIEMPRE OPACO=1
@@ -201,17 +198,9 @@ Sub pantalla
 		    If YY>(altopan-1) Then YY=0:XX+=2
 		  Next
   
-  		  ' en esta linea no, que es el marco de alrededor
-		  'Line (0,356)-step(640,10),RGB(21,21,21),bf ' contadores, superior
-		  'Line (180,360)-step(16,160),RGB(21,21,21),bf ' contadores, medio izq.
-		  'Line (440,360)-step(16,160),RGB(21,21,21),bf ' contadores, medio der.
-		  'Line (0,480)-step(640,40),RGB(21,21,21),bf ' inferior (el mas gordo)
-		  'Line (0,0)-step(8,520),RGB(21,21,21),bf ' lado der.
-		  'Line (632,0)-step(8,520),RGB(21,21,21),bf ' lado izq.
-		  'Line (0,0)-step(640,8),RGB(21,21,21),bf ' superior
    End If
 	screenunlock
-	If depuracion Then ' solo muestro la paleta si es "1"
+	If depuracion Then ' solo muestro la paleta si esta activo
 		ponpaleta()
 	End If
 	     

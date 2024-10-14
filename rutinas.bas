@@ -4,8 +4,7 @@ Declare Sub LeePROM(nombre As String)
 Declare Sub LeeNVRAM(nombre As String)
 
 Declare Sub pantalla()
-'Declare Sub Blitter_pixel(direccion As Integer, valor As Integer, dato As Integer, mascara As Integer, solido As Integer)
-'Declare Sub Blitter(n As byte) ' puede emular dos blitter, 0 y 1
+
 Declare Sub modulo_PIF(puerto As integer) ' modulo de control del LaserDisc mediante PIA desde la CPU principal
 Declare Sub botones() ' mandos del juego e interruptores de configuracion
 
@@ -24,6 +23,7 @@ Declare Sub BancoRAM(nbanco As Integer,zonaram As integer)
 
 
 ' para imprimir en la consola DOS y ganar velocidad y espacio en la grafica
+' rutina descargada del foro FreeBasic
 #Include "console_print.bi"
 Declare Sub prt Overload (x As Integer, y As Integer, s As String)
 Declare Sub prt Overload (x As Integer, y As Integer, s As Integer)
@@ -67,19 +67,18 @@ End Sub
 ' en el caso del banqueo de RAM la cosa es mas lenta aun, ya que primero
 ' debemos dejar en su sitio la original, antes de mover nada....
 Sub BancoRAM(nbanco As Integer,zonaram As integer)
+	' nota: no empleado, en su lugar, para mayor velocidad, sumo a la DIR de la RAM &h10000
+	'       y de ese modo no interfiere con la zona baja &h0000-&hFFFF y es mas rapido de gestionar
 	
 	'Var f=0
-
 	'For f=0 To &h2000-1
 	'	RAM(f+zonaram)=BRAM(nbanco,f)
 	'Next
-	
 End Sub
 
 
 ' su nombre lo dice: lee un archivo de ROM en su banco correspondiente
 Sub LeeROM(nombre As String,zona As Integer)
-   ' leemos la BIOS (ROM) de un Monitor de 6809 (que incluye FORTH en 8000 y BASIC en B800)
 	dim as integer ini=1 ' posiciones en el fichero a leer
 	dim as integer rom=0 ' posiciones en ROM
 	dim as integer contador=0 ' contador de la linea leida del fichero
@@ -103,7 +102,6 @@ End Sub
 
 ' NVRAM CMOS (contenido de configuracion mediante BATERIA)
 Sub LeeNVRAM(nombre As String)
-   ' leemos la BIOS (ROM) de un Monitor de 6809 (que incluye FORTH en 8000 y BASIC en B800)
 	dim as integer ini=1 ' posiciones en el fichero a leer
 	dim as integer posicion=0 ' posiciones en ROM
 	dim as integer contador=0 ' contador de la linea leida del fichero
@@ -127,7 +125,6 @@ End Sub
 
 ' PROM de mapeo de colores
 Sub LeePROM(nombre As String)
-   ' leemos la BIOS (ROM) de un Monitor de 6809 (que incluye FORTH en 8000 y BASIC en B800)
 	dim as integer ini=1 ' posiciones en el fichero a leer
 	dim as integer posicion=0 ' posiciones en ROM
 	dim as integer contador=0 ' contador de la linea leida del fichero

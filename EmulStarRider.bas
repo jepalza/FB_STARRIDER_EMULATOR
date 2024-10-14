@@ -74,7 +74,6 @@ ScreenSet 1,0 ' establece la 1 de trabajo, y la 0 visible
 	LeeROM("roms/R14U25.ROM",25)
 	LeeROM("roms/R16U26.ROM",26)
 	LeeROM("roms/R18U27.ROM",27)
-	'LeeROM("roms/R25U46.ROM",28)
 
 ' 8k : graficos de textos	
 	LeeROM("roms/R25U46.ROM",33) ' esta debe ir aqui (&H21=33d) por la forma de paginacion  
@@ -92,6 +91,7 @@ ScreenSet 1,0 ' establece la 1 de trabajo, y la 0 visible
 ' son DOS PROM identicas, la U10 y la U11, para emplear cada una en 4bits, total 4+4=8bits
 ' pero yo solo uso una, y duplico luego, puesto que son IDENTICAS
 	LeePROM("roms/u10.82s137")
+
 
 ' Lee la NVRAM CMOS 
 	LeeNVRAM("NVRAM.BIN")
@@ -127,14 +127,14 @@ desplaza_video=-380 ' empieza centrado (-100 es para la forma actual)
 op_mhz = 1000000 ' 1 mhz ??
 cycles_per_interrupt = op_mhz/60 ' 60hz de pantalla, nos da el periodo de interrupciones de 16666 opcycles
 
-Dim temp_double As Double
 Dim opcycles_to_irq As Integer ' contador de ciclos hasta generar irq
-Dim papa As Integer
-opcycles_to_irq = cycles_per_interrupt
-papa=cycles_per_interrupt/256
-tiempo_real=Timer()
+Dim pausa As Integer
+	opcycles_to_irq = cycles_per_interrupt
+	pausa=cycles_per_interrupt/256
+	tiempo_real=Timer()
 
 ' carga el frontal de la maquina real
+' nota: SynaMax ha proporcionado un nuevo frontal mas centrado
 Dim frontal As Any Ptr = ImageCreate( 640, 520, RGB(255, 0, 255)  )
 If depuracion=0 Then ' solo muestro el frontal si es "0"
 	BLoad "frontal/frontal.bmp", frontal
@@ -143,7 +143,10 @@ End If
 
 
 
-''' -----------------------------------------------------------------------------------------------
+
+
+' ---------------------------P R I N C I P A L -------------------------------------
+
 'Open "pp.txt" For Output As 1 ' salida de datos depuracion
 
 ' bucle infinito de ejecuciones: solo sale con "ESC"
@@ -155,23 +158,20 @@ While 1
   'tiempo_real=Timer()
   ciclos_ejecutados = m6809_execute() 
   'tiempo_consumido=Timer()-tiempo_real
-  ciclos_totales += ciclos_ejecutados
+  ciclos_totales  += ciclos_ejecutados
   opcycles_to_irq -= ciclos_ejecutados
 
-'Locate 10,10:Print Int((cycles_per_interrupt/256)),opcycles_to_irq,(opcycles_to_irq Mod Int((cycles_per_interrupt/256))):screencopy
 
-	'control_vertical=0
-  papa-=1
-  If papa<0 Then 
-  	papa=cycles_per_interrupt/256
-		 	control_vertical-=1
-		 	If control_vertical Mod 8=0 Then RAM(&hC900)=&h15 Else RAM(&hC900)=0 ' "Wathcdog" cada 7 cuadros
-			If control_vertical<0 Then 
-				control_vertical=255
-				actualizar_pantalla=1
-		 		irq_act=1 ' en cada barrido de pantalla llamamos a IRQ
-		 		'pantalla()
-			EndIf
+  pausa-=1
+  If pausa<0 Then 
+  		pausa=cycles_per_interrupt/256
+		control_vertical-=1
+		If control_vertical Mod 8=0 Then RAM(&hC900)=&h15 Else RAM(&hC900)=0 ' "Wathcdog" cada 7 cuadros
+		If control_vertical<0 Then 
+			control_vertical=255
+			actualizar_pantalla=1
+		 	irq_act=1 ' en cada barrido de pantalla llamamos a IRQ
+		EndIf
   EndIf
    	
   ' a 1mhz de velocidad de CPU M6809 real, se ejecutan 1millon de ciclos por segundo
@@ -188,32 +188,18 @@ While 1
 
    ' se ejecutan acciones HARDWARE cada 'x' ciclos
    If (opcycles_to_irq <0) Then ' 1.1 mhz 
-		'screenlock
-
    	opcycles_to_irq+=cycles_per_interrupt ' ajustamos ciclos sobrantes
-   	'irq_act=1
-
-
-		'Sleep 1 ' pause de prueba
 	
        ' lectura del AVI (solo si VIDEO=1, fondo encendido y actualizar pantalla)
 	   If video=1 And actualizar_pantalla=1 Then 'And background=0 Then 
-		 If cuadro>-1 Then 
-			'If cadaXcuadro=3 Then
-			  ' Si RAM(&hCBD0)=0 debemos expandir el video (y tambien mostrar el fondo), con "3", no expande
-			  
+		  If cuadro>-1 Then 
 			  '''''''''''''''''' ANULAR EXPANDER MIENTRAS SE DEPURA ''''''''''''''''''''''''
 			  'expander=2 ' con esto anulo el expander mientras depuro (es como activar BIT.1)
-			  'desplaza_video=-40 ' con esto fuerzo a centrar el video mientras depuro
+			  'desplaza_video=-50 ' con esto fuerzo a centrar el video mientras depuro
 			  
 			  If expander=1 Then 
 			  		desplaza_video=-50 ' expander desactivado (BIT.1 a 1, o sea, =2) el video se centra en -50
 			  Else
-			 		'If cadaXcuadro And MultiKey(SC_LEFT)   Then desplaza_video+=10
-			  		'If cadaXcuadro And MultiKey(SC_RIGHT)  Then desplaza_video-=10
-			  		'If MultiKey(SC_LEFT)   Then desplaza_video+=10
-			  		'If MultiKey(SC_RIGHT)  Then desplaza_video-=10
-
    ''==================================================================================================
    '' SynaMax:
    ''  We grab the 16-byte word at $D004.  This is the original expander value before it is modified to be 
@@ -227,77 +213,32 @@ While 1
    ''  -1073 looks like a good position for desplaza_video to align with the sprites.  We add the "raw"
    ''  expander value to desplaza_video and then multiply it by 2 since the video is stretched out.
 			  		
-			  		Dim As String raw
-			  		raw=Str(Hex(leeRAM(&hD004),2))+Str(Hex(leeRAM(&hD005),2))
-			  		desplaza_video=-1073+Val("&h"+raw)*2 ' expander activado (BIT.1 a 0, o sea, =0) el video se centra en -420
+			  		' nota: mejora en tiempo haciendo el calculo en modo INTEGER, en vez de STRING
+			  		Dim As UShort raw=leeRAM(&hD005)+(leeRAM(&hD004) Shl 8)
+			  		desplaza_video=-1073+(raw*2) ' expander activado (BIT.1 a 0, o sea, =0) mas centrado del mismo
    ''==================================================================================================
 			  EndIf
 			  
-			  ' compenso 43 cuadros a mayor, para que coincidan con los que pide el real
-			  ' la demo que hace cuando juega solo, requiere unos 24 cuadros a restar (-24)
-			  ' pero los escenarios principales, requieren +42, un lio
 			  MostrarVideo(cuadro, expander , desplaza_video)
 			  
-			  'If MultiKey(SC_LEFT)   Then desplaza_video+=10
-			  'If MultiKey(SC_RIGHT)  Then desplaza_video-=10
-			  
-			  
-			  ' los limites, para la configuracion actual (-40 es centro cuando NO esta expandido)
-			  'If desplaza_video<-730 Then desplaza_video=-730
-			  'If desplaza_video>-40  Then desplaza_video=-40
-			  'Locate 30,30:Print desplaza_video, RAM(&hCBD0)
-			  'If pausa=0 Then cuadro+=(1 * play):pausa=1 ' solo avanza si el PLAY esta pulsado
-			  'print #1,"play:";play
-		 		If leeRAM(&ha136)>0 Then		'' Very important to prevent slow down during black screens
+		 	  If leeRAM(&ha136)>0 Then	' Very important to prevent slow down during black screens
 			  		cuadro+=(1 * play):play=0
-			  	EndIf
-			  'cadaXcuadro=0
-			'End If
-			'cadaXcuadro+=1
-		 EndIf
+		 	  EndIf
+		  EndIf
 	   Else
+	   	' si no hay VIDEO, borro el fondo en cada actualizacion, para poder jugar SIN video
 	   	If video=0 Andalso actualizar_pantalla=1 Then ScreenSet 0:Cls
 	   End If     
  
-
-     
-		' mostramos la pantalla y miramos cambios en el modulo PIF del LD
-		'PtT-=1
-		'If ptt <0 Then
-		 'PtT=1000 ' probar el mejor en velocidad (3000 va bien)
-
-		 'modulo_PIF()
-		' If (cycles_per_interrupt/256) Then 
-		' 	control_vertical=0
-		''If control_vertical=-1 Then control_vertical=255
-		' 	actualizar_pantalla=1 ' cada vez que escribimos, actualizamos
-		' 	irq_act=1 ' en cada barrido de pantalla llamamos a IRQ
-		' EndIf
+ 		' actualziar pantalla
 		pantalla()
-
-		'End If       
-		Put (0,0), frontal,trans
+    
+    	' ponemos mascara frontal
+		Put (0,0), frontal,Trans
 		
-		' miramos los mandos de juego e interruptores de configuracion
-		'botones()
-		
-		' refresca la pantalla
-		'Wait &h3DA, 8
-		'ScreenUnLock 
-
-	  	
-		' control de lineas en pantalla (256 lineas verticales)
-		' 60hz es 0.0166 ms (1s/60hz)
-		' como no funciona bien, lo dejo SIEMPRE a "0" para que el juego avance y no se quede esperando
-		'control_vertical=0
-		'If control_vertical=-1 Then control_vertical=255
-		
+		' comprueba los mandos de juego
 	  	botones()
-	  	'prt 19,40, "DIPSWITCH:"+str(Bin(DIPSWT,8))  
-		'prt 21,40, "Control 2:"+str(Bin(control2,8)) 
-		'prt 20,40, "Control 1:"+str(Bin(control1,8)) 
 				 
-		   	
    	'tiempo_consumido=Timer()-tiempo_real
    	'Locate 10,10:Print tiempo_consumido
    	'If tiempo_consumido>0.01 Then Sleep (1-tiempo_consumido)*10,1
@@ -348,15 +289,6 @@ While 1
    
    End If ' fin de bucle de interrupciones
 '''''''''''''''''''''''''''''''''''''''''''''''''''''
-	 
-	 'PtT-=1
-	 'If PtT<0 Then	 
-	 '	PtT=30000
-	 ' 	botones()
-	 ' 	prt 19,40, "DIPSWITCH:"+str(Bin(DIPSWT,8))  
-		'prt 21,40, "Control 2:"+str(Bin(control2,8)) 
-		'prt 20,40, "Control 1:"+str(Bin(control1,8))  
-	 'End If
      
 
 ' bucle sin salida, infinito
@@ -376,6 +308,7 @@ ACABAR:
 	Next
 	Close 1     	
 
+	' memoria CMOS con puntuaciones y configuracion del juego (y monedas)
 	Open "NVRAM.BIN" For Binary Access write As 1
 	For FF As integer=0 To &h3FF
 		Put #1,FF+1, Chr(NVRAM(FF) And &hFF)

@@ -11,8 +11,8 @@ Dim Shared altoAvi  As Integer=488 '520
 ' medidas pantalla y posicion de inicio (deben coincidir con juego)
 Dim Shared anchovisual As Integer
 Dim Shared altovisual  As Integer
-anchovisual=resx ' usamos la resolucion del juego, de 640x480
-altovisual =resy
+	anchovisual=resx ' usamos la resolucion del juego, que puede estar escalada (ver VARIABLES.BAS)
+	altovisual =resy
 
 ' punteros AVI
 dim shared avifile As PAVIFILE 
@@ -66,21 +66,20 @@ End Function
 ' desplaza es para mover el video de un lado a otro, en el StarRider, y que parezca una moto en curvas
 Sub MostrarVideo(ByRef Frame As Integer, expandir As Integer, desplazar As integer)
 
-	If frame<0 Then frame=0 ' evito que de error si da cuadros negativos
+	If frame<0 Then frame=0 ' evito que de error si salen cuadros negativos
 	
-	' ajusta el video a los cuadros reales, mientras encuentro una solucion
-	'If frame=3 Then frame=50 ' principio, carta de ajuste
-	'If frame=68 Then frame=107'-38 ' primer cuadro de video real, nada mas empezar  
-	'If frame=1050 Then frame=1000 ' primer cuadro de video real, nada mas empezar  
-	'If frame=3839 Then frame=3891 ' demo inicial, cuando no hacemos nada
 	/'
-	If frame=3939 Then frame=3981 ' 1 Cubitania 
-	If frame=8099 Then frame=8141 ' 2 Hexagonia
-	If frame=12259 Then frame=12301 ' 3 Crystallia
-	If frame=15919 Then frame=15961 ' 4 Milky Way
-	If frame=19629 Then frame=19671 ' 5 Stalactia  ??
-	If frame=23339 Then frame=23381 ' 6 Titania
-	If frame=27499 Then frame=27451 ' 7 Metropolia
+		--- cuadros y nombres reales descubiertos or SYNAMAX en 2024 empleando mi investigacion previa ---
+		0003 	    3 	Start of laserdisc test card
+		0044 	   68 	Attract mode start
+		0EFF 	 3839 	Cosmodrome start
+		0F63 	 3939 	Cubitania
+		1FA3 	 8099 	Hexagonia
+		2FE3 	12559 	Crystalia
+		3E2F 	15919 	Milky Way
+		4CAD 	19629 	Titania
+		5B2B 	23339 	Stalactia
+		6B6B 	27499 	Metropolia
 	'/
 	
 	' puntero del cuadro descodificado

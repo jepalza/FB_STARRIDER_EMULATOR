@@ -80,23 +80,25 @@ Dim SHARED YA2 As Integer
 Dim Shared YA3 As Integer
 '--------------------------------
 
-Dim Shared Blitter_reg(&hF) As integer ' almacen de bytes para el emulador de Blitter (usa 2, de 8+8)
+Dim Shared Blitter_reg(&hF) As integer ' almacen de datos para el emulador de Blitter (emplea 2, de 8+8)
 
 
-Dim Shared PtT As Integer=0 ' PRUEBAS SOLO
 Dim Shared Accel As Single=0 ' acelerador (con decimales, para que no acelere de golpe)
 Dim Shared Steer As Single=32 ' manillar (centro=32) (con decimales, para que no gire de golpe)
+
+
 Dim Shared BancoROMG As Integer=0 ' banco actual de ROM grafica
 Dim Shared BancoROMS As Integer=0 ' banco actual de ROM de la CPU
 
 
+' para capturar el cuadro de inicio de la escena que pide el puerto CB82 del PIF
 Dim Shared cuadro As Integer=0 ' prueba para el video
 'Dim Shared cadaXcuadro As Integer=0 ' para la velocidad del video
-
-' para capturar el cuadro de inicio de la escena que pide el puerto CB82 del PIF
 Dim Shared capturar_cuadro As Integer=0 
 Dim Shared tempcuadro As Integer=0
-Dim Shared pausa As Integer =0
+
+' control del video
+'Dim Shared pausa_video As Integer =0
 Dim Shared play As Integer=0 ' velocidad de avance de 1x a 4x (0 no avanza??)
 
 
@@ -108,7 +110,7 @@ Dim Shared play As Integer=0 ' velocidad de avance de 1x a 4x (0 no avanza??)
 
 		' definicion de espacios RAM y ROM
 		' la ram se divide en dos zonas de 0000-FFFF RAM de CPU, y de 10000-1FFFF zona de GRAFICOS
-		' NOTA: es un invento mio para no liarme con el banqueo de ROMS
+		' NOTA: es un invento mio para no liarme con el intercambio de ROMS
 		Dim Shared RAM  (&h20000)   As Integer ' RAM general: en realidad, el espacio donde se trabaja
 		'Dim Shared BRAM (5,&h800)  As Integer ' 5 bancos de RAM de 2k cada uno, para la CPU (10k)
 	   'Dim Shared SRAM (1,1)      As Integer ' necesitamos guardar el estado de los bancos de RAM
