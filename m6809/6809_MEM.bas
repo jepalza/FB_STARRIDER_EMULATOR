@@ -1,15 +1,14 @@
  
-'******************************************
+'*******************************************
 ' Funciones de lectura/escritura de RAM/ROM
 '*******************************************
 Sub guardaRAM(pt As Integer, pv As Integer)
-	If PT>&h1FFFF Then  CLS:PRINT "ERROR 1 EN RAM":SLEEP
+	If PT>&h1FFFF Then CLS:PRINT "ERROR 1 EN RAM":ScreenCopy:SLEEP
 	RAM(PT)=PV
 End Sub
 
 Function leeRAM(pt As Integer) As Integer
-	If PT>&h1FFFF Then CLS:PRINT "ERROR 2 EN RAM":SLEEP
-    'if PT=&ha101 then RETURN INT(RND(1)*256) ' NI IDEA, PERO EN LA A101 SE QUEDA PARADO MUCHAS VECES ESPERANDO ALGO
+	If PT>&h1FFFF Then CLS:PRINT "ERROR 2 EN RAM":ScreenCopy:SLEEP
 	leeRAM=RAM(PT)
 End Function
 
@@ -136,14 +135,10 @@ Sub pokeb(PT As integer, PV As Integer)
 		   Exit sub
 		End If	
 		
-		' podria ser mascara blitter para cambio de colores
+		' podria ser mascara blitter para cambio de colores (Dato descubierto por SynaMax (Max) en Oct.24)
 		' NOTA: al parece, los puertos CBC2 al CBCF no se emplean....
 		If PT=&hCBC1 Then ' en fase de pruebas
-			'YA1= PV And &h0f
-			'YA2=(PV And &hf0) Shr 4
 			COLORMASK = PV And &h3F ' no se si esto es correcto, maximo 64 paletas???
-			'If COLORMASK > 63 Then Print #1,PV,Hex(PV,2):beep
-			'Print #1,YA3,YA2,YA1,Hex(YA3,2),Bin(YA2,8);"-";Bin(YA1,8)
 		EndIf
 		
 		' BLITTER: chip encargado de mover los bloques graficos entre ROM y VRAM
@@ -181,18 +176,21 @@ Sub pokeb(PT As integer, PV As Integer)
 	   
 	   ''''''''''''''''''''''''''''''''''''
    	' estos 4 segun parece, son PIA del expander (80 y 81, puerto A) y PIF-LD (82 y 83, puerto B)
+   	' pero no es necesario hacer nada (aun) dado que NO emulo el modulo PIF, sino que lo "simulo"
 	   If PT=&hCB80 Then 
 	   	'PV=PV Xor 128
 	   EndIf 
 	   If PT=&hCB81 Then 
 	   	'PV=PV Xor 128 ' muy importante: sin el, los textos del inicio, aparecen lentiiiiiiiisimos
 	   EndIf  
+	   
 	   ' placa PIF, la del LaserDisc
 	   
 	   ' en la DIR A172 se almacenan los 3+42 datos del manchester, que el HARD REAL lee desde el disco
 	   ' como yo no tengo nada , esta zona permanece siempre a "0"(3+42=3 del cuadro F9xxxx y 42 de MIS datos)
-	   'For FF=&ha172 To &ha172+48:RAM(FF)=Int(Rnd(1)*256):next
+	   ' For FF=&ha172 To &ha172+48:RAM(FF)=Int(Rnd(1)*256):next
   
+  		' tengo que "simular" el funcionamiento del modulo PIF, por lo que leo y guardo el cuadro a mostrar
 	   If PT=&hCB82 Then 
 	   	'If PV<>5 Then Print #1,"LASERDISC CB82 out:";Hex(PV,2);" en PC:";Hex(PC,2), play
 	   	If capturar_cuadro=2 Then
@@ -201,8 +199,7 @@ Sub pokeb(PT As integer, PV As Integer)
 		   		cuadro=tempcuadro
 		   		'Locate 10,10:Print "Cuadro:";cuadro:ScreenCopy:Sleep 10,1:Sleep
 		   		'Print #1,"Cuadro:";cuadro
-		   		'pausa=1
-
+		   		'pausa_video=1
 		   		play=1
 		   		guardaRAM(PT,PV)
 		   		Exit sub
@@ -219,11 +216,12 @@ Sub pokeb(PT As integer, PV As Integer)
 		   		Exit Sub
 		   	EndIf
 	   	End If
+	   	
 	   	'If PV=&h01 Then ' se supone que es PLAY, pero no aparece nunca!!
 	   	'If PV=&h02 Then ' es una especie de "hola, estoy aqui", sin uso
 	   	'If PV=&h05 Then Rem play=0' no hace nada, es como un espacio en blanco, un simple NOP
-	   	'If PV=&h08 Then End' pausa=1 ' no se si es una pausa o avanzar un cuadro y parar
-	   	'If PV=&h09 Then End' pausa=1 ' no se si es una pausa o retroceder un cuadro y parar
+	   	'If PV=&h08 Then End' pausa_video=1 ' no se si es una pausa o avanzar un cuadro y parar
+	   	'If PV=&h09 Then End' pausa_video=1 ' no se si es una pausa o retroceder un cuadro y parar
 	   	'If PV=&h0C Then ' TEST?? envia 1,2,4,8,10,20,40,80 en hexa seguidos!!!!
 	   	'play=0
 	   	
@@ -234,9 +232,7 @@ Sub pokeb(PT As integer, PV As Integer)
 	   	If PV=&h11 Then play=-1 ' RETROCEDE x1 , creo que solo se usa en los test
 	   	If PV=&h12 Then play=-2 ' RETROCEDE x2 , idem
 	   	
-	   	'Print #1,"Speed:";play
-	   	'Print #1,play
-	   	' buscando comandos no utilizados. si aparecen, se escriben en el fichero PEPE.TXT externo
+	   	' buscando comandos no utilizados. si aparecen, se escriben en fichero externo
 	   	' he eliminado el 02 y el 05 por que salen muchas veces y no tienen utilidad
 	   	'If PV=0 Or pv=1 Or pv=3 Or pv=4 Or pv=6 Or pv=7 Or pv=8 Or pv=9 Or pv=10 Or pv=11 Or pv=12 Or pv=17 Or pv=18 Then
 	   			'Print #1,"CB82 out:";Hex(PV,2);" en PC:";Hex(PC,2)
@@ -271,7 +267,7 @@ Sub pokeb(PT As integer, PV As Integer)
 	   EndIf 
 
 
-	   ' paleta de colores (he visto hasta la 9 por ahora, cuando explota al chocarse con una roca)
+	   ' paleta de colores (he visto hasta la 9 por ahora, cuando explota al chocarse con un enemigo o roca)
 	   If PT>=&hCBE0 And PT<=&hCBEF Then ' NOTA: no parece que se usen desde CBE1 hasta CBEF, nunca llegan aqui!!
 	   	paleta=PV And &h3F ' solo 6bits tienen sentido (64 bancos de 16 colores)	
 	   EndIf 
@@ -287,7 +283,6 @@ Sub pokeb(PT As integer, PV As Integer)
 End Sub
 
 Function peekb(PT As integer) As Integer	
-	'If PT=&h676e And bancorom<>0 Then Print "hola":ScreenCopy:sleep
    ' el modulo VGG es capaz de leer desde la VRAM, por eso
    ' necesito tener una VRAM accesible, independiente de la RAM
 	' para su Testeo por la CPU (y asi no da error al principio)
@@ -327,7 +322,6 @@ Function peekb(PT As integer) As Integer
 	EndIf
 
 
-
 	' resto de casos (ROM y puertos I/O)
 	PV=leeRAM(PT)
 
@@ -349,22 +343,12 @@ Function peekb(PT As integer) As Integer
 	   	 'If pt>=&hcb80 And pt<=&hcb83 Then a=1 ' PIA del sonido??
 	   	 'If pt>=&hcba0 And pt<=&hcba3 Then a=1 ' PIA del LaserDisc??
 	   	 'If PT>=&HCBB8 And PT<=&HCBBF Then a=1 ' blitter
-	   	 'If PT=&hcbb0 Or PT=&Hcb8 Then Print #1,Hex(pc);" = ";Hex(pt);" <---- ";Hex(pv)
-		    'Print #1,"ENTRADA A Puerto:";Hex(PT,4);"  PC:";Hex(PC,4)
 		
 			'If pt=&Hc880 Then ' LED DE SALIDA DE DATOS, EL DISPLAY TIPO "8" DE UN SOLO DIGITO DE LA PLACA DE TEST
 			   
 			If (PT>&hC7ff And PT<&HCC00) Then
 					'If pt=&hcb80 Then Locate 18,1:Print #1,"l:";Hex(PT);" ";Hex(pv,2);"   "
-				 	'If pt=&hcb81 Then Locate 19,1:Print #1,"l:";Hex(PT);" ";Hex(pv,2);"   "
-				 	'If pt=&hcb82 Then Locate 20,1:Print #1,"l:";Hex(PT);" ";Hex(pv,2);"   "
-				 	'If pt=&hcb83 Then Locate 21,1:Print #1,"l:";Hex(PT);" ";Hex(pv,2);"   "
-				 	'If pt=&hc880 Then Locate 22,1:Print "l:";Hex(PT);" ";Hex(pv);"   "
-				 	'If pt=&hc881 Then Locate 23,1:Print "l:";Hex(PT);" ";Hex(pv);"   "
-			 	   'If pt=&hc882 Then Locate 24,1:Print "l:";Hex(PT);" ";Hex(pv);"   "
-			 	   'If pt=&hc883 Then Locate 25,1:Print "l:";Hex(PT);" ";Hex(pv);"   "
-			 	   'If pt=&hc983 Then Locate 26,1:Print "l:";Hex(PT);" ";Hex(pv);"   "
-		   EndIf
+			EndIf
 	
 	
 	
@@ -409,29 +393,17 @@ Function peekb(PT As integer) As Integer
 			   If Left(sa,1)="2" Then sa="FA"+Mid(sa,2)
 			   If Left(sa,1)="3" Then sa="FB"+Mid(sa,2)
 			   
-			   'RAM(&hA172+0)=Val("&h"+Mid(sa,1,2))
-			   'RAM(&hA172+1)=Val("&h"+Mid(sa,3,2))
-			   'RAM(&hA172+2)=Val("&h"+Mid(sa,5,2))	
-			   'RAM(&hA172+(PT-&hCB03))=0	
-			   
 			   '' We feed the VBI frame number into $CB00, they will automatically go to $A172-A174
 			   
 			   RAM(&hCB00+0)=Val("&h"+Mid(sa,1,2))
 			   RAM(&hCB00+1)=Val("&h"+Mid(sa,3,2))
 			   RAM(&hCB00+2)=Val("&h"+Mid(sa,5,2))	
 			   RAM(&hCB00+(PT-&hCB03))=0	
-			    
-			   'If PT=&hCB00 Then PV=Val("&h"+Mid(sa,1,2))
-			   'If PT=&hCB01 Then PV=Val("&h"+Mid(sa,3,2))
-			   'If PT=&hCB02 Then PV=Val("&h"+Mid(sa,5,2))	 
-			   'If PT>&hCB02 Then PV=0'Int(Rnd(1)*256) ' aleatorio todo lo demas, por ahora, pero deberian ser MIS 42 bytes manchester	 
 
-				'Print #1,"1:";Hex(PT,4),PV
-				'PV=Int(Rnd(1)*256)
 			End If		
 		
    ''==================================================================================================
-   '' SynaMax:
+   '' SynaMax: (OCT.24)
    ''  in order to get the video to sync correctly, we need to bypass the fields and vert counters since
    ''  we're not doing interlated video.
    ''
@@ -439,9 +411,7 @@ Function peekb(PT As integer) As Integer
    ''  the (fake) hardware matches up with what the software is expecting which interlaced field the CRT is on.
    ''
    		If PT=&hCB90 Then 
-  			
-   		RAM(&hCB90)=leeRAM(&hA101) ' THIS IS IT!! (3:32 pm 10/5/24)
-   			
+   			RAM(&hCB90)=leeRAM(&hA101) ' THIS IS IT!! (3:32 pm 10/5/24)
    		EndIf	
    ''==================================================================================================		
 		  	
@@ -454,11 +424,6 @@ Function peekb(PT As integer) As Integer
 		   EndIf  
 		   ' quizas el LD
 		   If PT=&hCB82 Then 
-		   	'PV=Int(Rnd(1)*256)
-		   	'Print #1,Rnd
-		   	'sa=Trim(Str(cuadro)),5
-		   	'If hCB82=0 Then PV=
-		   	
 		   	'RAM(&hA133)=68
 		   EndIf  
 		   If PT=&hCB83 Then 
@@ -497,7 +462,7 @@ Function peekb(PT As integer) As Integer
 		   
 		   
 		   
-		   ' y mas que no se....
+		   ' y mas datos que no se....
 		   If PT=&hCB00 Then
 		   	'PV+=1 'PV xor 128
 		   EndIf
@@ -544,49 +509,17 @@ Function peekb(PT As integer) As Integer
 					     'ccz=1 ' nota: ya no necesario, con los nuevos arreglos
 					   EndIf
 					   '''''''''''''''''''''''''''''''''''''''''''''''''''''''
-  
-  
-	   'If YA1=0 Then 	   
-		  'If (pt=&hf178) Then ccz=1 ' trampeos ram para que no haga el test inicial de RAM
-	   'End If
-	
-	   ' trampa para que no de error de LD (no se si anda muy bien)
-	   ' como anteriormente se ha "tocado" la DIR:&h19E9 21 veces, solo trampeamos desde la 22ava vez.
-	   'If PT=&h19e8 Then 
-	   	'ccz=0
-	   	'guardaRAM(&ha10e,7)
-	   	'Print "hola";ya2,leeRAM(&ha10e):ScreenCopy:sleep
-	   	'ya2+=1
-	   	'If ya2>22 then ya2=23:PV=&h0
-	   	'PV=0
-	   'EndIf
-	   'If ya2=21 Then
-	   	'Print #1,"desde ahora"
-	   	'ya2+=1
-	      'If PT=&h19dc Then 
-	      	'ccz=0
-	   	'pv=6: 'leeRAM(&ha10e)
-	   	'pv=pv+1:If pv=5 Then pv=0
-	   	'If ya2>22 then ya2=23:PV=&h0
-	      'EndIf
 
-	   
-	   
+	' estos ya no los necesito , pero lo dejo como historico
 	   'If PT=&h9351 Then 
-	     'ccz=1 ' este no es necesario para las pruebas, pero lo dejo
+	     'ccz=1 
 	   'EndIf
 	   'If PT=&he813 Then 
 	     'ccz=1
 	   'EndIf
   
-  
-  
-  
-  
-  
-   
-   'End if
    'If PT=&h89f3 Then ccz=0: cuadro=0:' no se por que aun, pero si no trampeo el BEQ, da error de RAM en FB
+   
 	Return PV And &hFF
 End Function
 
