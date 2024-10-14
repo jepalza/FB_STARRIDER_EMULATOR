@@ -22,9 +22,9 @@ Necesitaras una carpeta llamada ROMS:
  
   	'LeeROM("roms/xxxx37.CPU",5) 
    
-	LeeROM("roms/R34U45.CPU",7) 
+	LeeROM("roms/R34U45.CPU",7) (mejor emplear "roms/rom_34.u45")
  
-	LeeROM("roms/R35U52.CPU",8) 
+	LeeROM("roms/R35U52.CPU",8) (mejor emplear "roms/rom_35.u52")
 
 
 ' 16k : graficos generales	
