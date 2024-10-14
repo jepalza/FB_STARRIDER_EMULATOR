@@ -541,7 +541,7 @@ Function peekb(PT As integer) As Integer
 					   ''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 					   ' falseos para saltarse el error de DISC FAULT
 					   If PT=&h19ea Then 
-					     ccz=1
+					     'ccz=1 ' nota: ya no necesario, con los nuevos arreglos
 					   EndIf
 					   '''''''''''''''''''''''''''''''''''''''''''''''''''''''
   
