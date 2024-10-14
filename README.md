@@ -70,8 +70,6 @@ Necesitaras una carpeta llamada ROMS:
  
 	LeeROM("roms/R18U27.ROM",27)
  
-	'LeeROM("roms/R25U46.ROM",28) (no necesaria)
- 
 
 ' 8k : graficos de textos	
 
