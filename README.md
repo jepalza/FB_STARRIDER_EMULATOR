@@ -19,8 +19,6 @@ Necesitaras una carpeta llamada ROMS:
 	LeeROM("roms/R31U15.CPU",4) 
  
 	LeeROM("roms/R32U26.CPU",5) 
- 
-  	'LeeROM("roms/xxxx37.CPU",5) 
    
 	LeeROM("roms/R34U45.CPU",7) (mejor emplear "roms/rom_34.u45")
  
@@ -29,7 +27,7 @@ Necesitaras una carpeta llamada ROMS:
 
 ' 16k : graficos generales	
 
-   ' fila "par"
+' fila "par"
    
 	LeeROM("roms/R1U4.ROM  ",09)
  
@@ -51,7 +49,8 @@ Necesitaras una carpeta llamada ROMS:
  
 	LeeROM("roms/R19U13.ROM",18) 
  
-	' fila "impar"	
+ 
+' fila "impar"	
  
 	LeeROM("roms/R2U19.ROM ",19)
  
@@ -71,7 +70,7 @@ Necesitaras una carpeta llamada ROMS:
  
 	LeeROM("roms/R18U27.ROM",27)
  
-	'LeeROM("roms/R25U46.ROM",28)
+	'LeeROM("roms/R25U46.ROM",28) (no necesaria)
  
 
 ' 8k : graficos de textos	
@@ -102,11 +101,15 @@ Necesitaras una carpeta llamada ROMS:
 
  Teclas:
  
- cursores y Z+X para control. 3 para moneda e iniciar juego
+ cursores y Z+X para control. 
  
- W para entrar en modo chequeo y Q para avanzar o aceptar modos
+ 3 para monedas e iniciar juego (o Z para iniciar)
  
- E para reinicar CMOS
+ W para entrar en modo chequeo 
+ 
+ Q para avanzar o aceptar modos
+ 
+ E para reiniciar CMOS
  
  F1 para entrar en modo depuracion
  
