@@ -124,13 +124,13 @@ If video=0 Then Print:Print "EJECUCION SIN VIDEO: Pulsa una tecla para seguir si
 cuadro=0
 desplaza_video=-380 ' empieza centrado (-100 es para la forma actual)
 
-op_mhz = 1000000 ' 1 mhz ??
+op_mhz = 1070000 ' 1,07 mhz ??
 cycles_per_interrupt = op_mhz/60 ' 60hz de pantalla, nos da el periodo de interrupciones de 16666 opcycles
 
 Dim opcycles_to_irq As Integer ' contador de ciclos hasta generar irq
 Dim pausa As Integer
 	opcycles_to_irq = cycles_per_interrupt
-	pausa=cycles_per_interrupt/256
+	pausa=cycles_per_interrupt/133
 	tiempo_real=Timer()
 
 ' carga el frontal de la maquina real
@@ -164,7 +164,7 @@ While 1
 
   pausa-=1
   If pausa<0 Then 
-  		pausa=cycles_per_interrupt/256
+  		pausa=cycles_per_interrupt/133
 		control_vertical-=1
 		If control_vertical Mod 8=0 Then RAM(&hC900)=&h15 Else RAM(&hC900)=0 ' "Wathcdog" cada 7 cuadros
 		If control_vertical<0 Then 
@@ -197,6 +197,12 @@ While 1
 			  'expander=2 ' con esto anulo el expander mientras depuro (es como activar BIT.1)
 			  'desplaza_video=-50 ' con esto fuerzo a centrar el video mientras depuro
 			  
+			  MostrarVideo(cuadro, expander , desplaza_video)
+			  
+		 	  If leeRAM(&ha136)>0 Then	' Very important to prevent slow down during black screens
+			  		cuadro+=(1 * play):play=0
+		 	  EndIf
+							  
 			  If expander=1 Then 
 			  		desplaza_video=-50 ' expander desactivado (BIT.1 a 1, o sea, =2) el video se centra en -50
 			  Else
@@ -218,12 +224,7 @@ While 1
 			  		desplaza_video=-1073+(raw*2) ' expander activado (BIT.1 a 0, o sea, =0) mas centrado del mismo
    ''==================================================================================================
 			  EndIf
-			  
-			  MostrarVideo(cuadro, expander , desplaza_video)
-			  
-		 	  If leeRAM(&ha136)>0 Then	' Very important to prevent slow down during black screens
-			  		cuadro+=(1 * play):play=0
-		 	  EndIf
+
 		  EndIf
 	   Else
 	   	' si no hay VIDEO, borro el fondo en cada actualizacion, para poder jugar SIN video
